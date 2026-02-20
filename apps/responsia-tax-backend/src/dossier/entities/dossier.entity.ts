@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -18,7 +18,7 @@ export enum DossierStatus {
 
 @Entity('dossiers')
 export class Dossier {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'uuid', default: () => 'gen_random_uuid()' })
   id!: string;
 
   @Column({ type: 'varchar', length: 255 })

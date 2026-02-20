@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   CreateDateColumn,
   ManyToOne,
@@ -16,7 +16,7 @@ export enum LlmRole {
 
 @Entity('llm_messages')
 export class LlmMessage {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'uuid', default: () => 'gen_random_uuid()' })
   id!: string;
 
   @Column({ type: 'uuid', name: 'question_id' })

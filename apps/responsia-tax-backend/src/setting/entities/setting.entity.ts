@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -8,7 +8,7 @@ import {
 
 @Entity('settings')
 export class Setting {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'uuid', default: () => 'gen_random_uuid()' })
   id!: string;
 
   @Column({ type: 'varchar', length: 255, unique: true })

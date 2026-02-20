@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -20,7 +20,7 @@ export enum QuestionStatus {
 
 @Entity('questions')
 export class Question {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'uuid', default: () => 'gen_random_uuid()' })
   id!: string;
 
   @Column({ type: 'uuid', name: 'round_id' })

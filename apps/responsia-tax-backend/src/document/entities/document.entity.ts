@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   CreateDateColumn,
   ManyToOne,
@@ -18,7 +18,7 @@ export enum DocType {
 
 @Entity('documents')
 export class Document {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'uuid', default: () => 'gen_random_uuid()' })
   id!: string;
 
   @Column({ type: 'uuid', name: 'dossier_id' })
