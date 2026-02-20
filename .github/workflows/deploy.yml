@@ -24,10 +24,10 @@ jobs:
       - run: npm ci --legacy-peer-deps
 
       - name: Build backend
-        run: npx nx build responsia-tax-backend --configuration=production
+        run: npx nx build responsia-tax-backend
 
       - name: Build frontend
-        run: npx nx build responsia-tax-frontend --configuration=production
+        run: npx nx build responsia-tax-frontend
 
       - name: Copy frontend dist into backend static
         run: |

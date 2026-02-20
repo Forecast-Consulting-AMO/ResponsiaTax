@@ -34,7 +34,7 @@ export default defineConfig(() => ({
     }),
   ],
   build: {
-    outDir: './dist',
+    outDir: '../../dist/apps/responsia-tax-frontend',
     emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {
