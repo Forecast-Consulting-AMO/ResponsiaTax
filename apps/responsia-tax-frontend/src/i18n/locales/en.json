@@ -1,0 +1,431 @@
+{
+  "common": {
+    "appName": "ResponsiaTax",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "open": "Open",
+    "upload": "Upload",
+    "download": "Download",
+    "status": "Status",
+    "noData": "No data",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "actions": "Actions",
+    "locale": "en-GB",
+    "yes": "Yes",
+    "no": "No",
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "nav": {
+    "home": "Home",
+    "dossiers": "Dossiers",
+    "settings": "Settings",
+    "questions": "Questions"
+  },
+  "dossier": {
+    "detail": "Dossier Detail",
+    "fields": {
+      "name": "Dossier Name",
+      "companyName": "Company Name",
+      "companyNumber": "Company Number",
+      "taxType": "Tax Type",
+      "taxYear": "Tax Year",
+      "reference": "Reference",
+      "controllerName": "Controller Name",
+      "controllerEmail": "Controller Email",
+      "status": "Status",
+      "notes": "Notes",
+      "systemPrompt": "System Prompt",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At"
+    },
+    "statuses": {
+      "open": "Open",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "closed": "Closed"
+    }
+  },
+  "dossiers": {
+    "title": "Dossiers",
+    "create": "New Dossier",
+    "created": "Dossier created successfully",
+    "updated": "Dossier updated",
+    "deleted": "Dossier deleted",
+    "confirmDelete": "Are you sure you want to delete this dossier?",
+    "statusFilter": {
+      "all": "All",
+      "open": "Open",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "closed": "Closed"
+    },
+    "fields": {
+      "name": "Dossier Name",
+      "companyName": "Company Name",
+      "companyNumber": "Company Number",
+      "taxType": "Tax Type",
+      "taxYear": "Tax Year",
+      "reference": "Reference",
+      "controllerName": "Controller Name",
+      "controllerEmail": "Controller Email",
+      "status": "Status",
+      "notes": "Notes",
+      "systemPrompt": "System Prompt",
+      "systemPromptHelp": "This system prompt overrides the default prompt for this dossier. It will be used in LLM conversations."
+    },
+    "status": {
+      "open": "Open",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "closed": "Closed"
+    },
+    "createDialog": {
+      "title": "Create a New Dossier",
+      "submit": "Create Dossier"
+    },
+    "empty": {
+      "title": "No dossiers",
+      "description": "Create your first dossier to get started."
+    },
+    "errors": {
+      "fetchFailed": "Unable to load dossiers",
+      "createFailed": "Unable to create dossier",
+      "updateFailed": "Unable to update dossier",
+      "deleteFailed": "Unable to delete dossier",
+      "requiredFields": "Please fill in all required fields"
+    }
+  },
+  "dossierDetail": {
+    "saved": "Dossier saved",
+    "notFound": "Dossier not found",
+    "roundCreated": "Round created successfully",
+    "documentsUploaded": "Documents uploaded successfully",
+    "documentDeleted": "Document deleted",
+    "rounds": {
+      "title": "Audit Rounds",
+      "add": "Add a round",
+      "empty": "No audit rounds. Add the first round to get started.",
+      "tourN": "Round {{n}}",
+      "received": "Received",
+      "deadline": "Deadline",
+      "questions": "questions"
+    },
+    "documents": {
+      "title": "Documents",
+      "upload": "Upload documents",
+      "empty": "No documents uploaded",
+      "deleteTitle": "Delete document",
+      "deleteMessage": "Are you sure you want to delete this document? This action cannot be undone."
+    },
+    "errors": {
+      "fetchFailed": "Unable to load dossier",
+      "saveFailed": "Unable to save dossier",
+      "roundsFetchFailed": "Unable to load rounds",
+      "documentsFetchFailed": "Unable to load documents",
+      "roundCreateFailed": "Unable to create round",
+      "uploadFailed": "Unable to upload document",
+      "deleteFailed": "Unable to delete document",
+      "downloadFailed": "Unable to download document"
+    }
+  },
+  "round": {
+    "detail": "Round Detail",
+    "create": "New Round",
+    "created": "Round created successfully",
+    "updated": "Round updated",
+    "deleted": "Round deleted",
+    "confirmDelete": "Are you sure you want to delete this round?",
+    "fields": {
+      "roundNumber": "Round Number",
+      "receivedDate": "Received Date",
+      "deadline": "Deadline",
+      "status": "Status"
+    },
+    "statuses": {
+      "pending": "Pending",
+      "in_progress": "In Progress",
+      "responded": "Responded",
+      "closed": "Closed"
+    },
+    "errors": {
+      "fetchFailed": "Unable to load rounds",
+      "createFailed": "Unable to create round",
+      "updateFailed": "Unable to update round",
+      "deleteFailed": "Unable to delete round"
+    }
+  },
+  "rounds": {
+    "status": {
+      "pending": "Pending",
+      "in_progress": "In Progress",
+      "responded": "Responded",
+      "closed": "Closed"
+    }
+  },
+  "roundDetail": {
+    "tourN": "Round {{n}}",
+    "saved": "Round saved",
+    "notFound": "Round not found",
+    "deadlinePassed": "The deadline has passed!",
+    "deadlineApproaching": "The deadline is approaching (less than 7 days).",
+    "ocrInProgress": "OCR in progress, please wait...",
+    "ocrComplete": "OCR completed successfully",
+    "questionsExtracted": "{{count}} questions extracted successfully",
+    "exported": "Document exported successfully",
+    "documentsUploaded": "Documents uploaded successfully",
+    "fields": {
+      "receivedDate": "Received Date",
+      "deadline": "Deadline",
+      "status": "Status"
+    },
+    "questions": {
+      "title": "Questions",
+      "extract": "Extract questions",
+      "empty": "No questions for this round.",
+      "emptyHint": "Upload a document of type \"Information Request\" then click \"Extract questions\".",
+      "response": "Response",
+      "answer": "Answer"
+    },
+    "documents": {
+      "title": "Documents",
+      "upload": "Upload documents",
+      "empty": "No documents for this round.",
+      "ocr": "Run OCR"
+    },
+    "export": {
+      "title": "Export",
+      "description": "Export questions and answers for this round in DOCX format.",
+      "button": "Export to DOCX"
+    },
+    "errors": {
+      "fetchFailed": "Unable to load round",
+      "saveFailed": "Unable to save round",
+      "questionsFetchFailed": "Unable to load questions",
+      "documentsFetchFailed": "Unable to load documents",
+      "noQuestionDocument": "No \"Information Request\" document found. Upload one first.",
+      "extractFailed": "Unable to extract questions",
+      "exportFailed": "Unable to export document",
+      "uploadFailed": "Unable to upload document",
+      "ocrFailed": "Unable to run OCR",
+      "downloadFailed": "Unable to download document"
+    }
+  },
+  "questions": {
+    "status": {
+      "pending": "Pending",
+      "drafting": "Drafting",
+      "reviewed": "Reviewed",
+      "approved": "Approved"
+    }
+  },
+  "questionDetail": {
+    "notFound": "Question not found",
+    "saved": "Response saved",
+    "markedReviewed": "Response marked as reviewed",
+    "copiedToResponse": "Response copied to editor",
+    "chatCleared": "Chat history cleared",
+    "backToRound": "Back to round",
+    "markReviewed": "Mark as reviewed",
+    "fields": {
+      "status": "Status",
+      "notes": "Notes"
+    },
+    "response": {
+      "title": "Response",
+      "placeholder": "Write your response here..."
+    },
+    "chat": {
+      "title": "AI Assistant",
+      "model": "Model",
+      "systemPrompt": "System prompt",
+      "systemPromptPlaceholder": "Override the default system prompt for this conversation...",
+      "empty": "Start a conversation with the AI assistant to help you draft your response.",
+      "thinking": "Thinking...",
+      "inputPlaceholder": "Type your message...",
+      "send": "Send",
+      "autoApply": "Auto-apply AI response to the editor",
+      "copyToResponse": "Copy to response",
+      "quickDraft": "Draft a response",
+      "quickImprove": "Improve response",
+      "quickSummarize": "Summarize",
+      "clearHistory": "Clear history"
+    },
+    "errors": {
+      "fetchFailed": "Unable to load question",
+      "saveFailed": "Unable to save response",
+      "chatFailed": "Error sending message",
+      "clearFailed": "Unable to clear history",
+      "noResponseToImprove": "Write a response first before asking for improvement."
+    }
+  },
+  "document": {
+    "upload": "Upload Document",
+    "uploaded": "Document uploaded successfully",
+    "deleted": "Document deleted",
+    "confirmDelete": "Are you sure you want to delete this document?",
+    "uploadDragDrop": "Drag & drop your files here",
+    "uploadClickBrowse": "or click to browse",
+    "types": {
+      "question_dr": "Information Request",
+      "support": "Supporting Document",
+      "response_draft": "Response Draft",
+      "other": "Other"
+    },
+    "ocr": {
+      "title": "OCR Text",
+      "noText": "No OCR text available",
+      "extracting": "Extracting text..."
+    },
+    "errors": {
+      "uploadFailed": "Unable to upload document",
+      "deleteFailed": "Unable to delete document",
+      "downloadFailed": "Unable to download document"
+    }
+  },
+  "question": {
+    "detail": "Question Detail",
+    "extract": "Extract Questions",
+    "extracted": "Questions extracted successfully",
+    "draft": "Draft",
+    "review": "Review",
+    "approve": "Approve",
+    "approved": "Question approved",
+    "create": "New Question",
+    "created": "Question created successfully",
+    "updated": "Question updated",
+    "deleted": "Question deleted",
+    "confirmDelete": "Are you sure you want to delete this question?",
+    "fields": {
+      "questionNumber": "Number",
+      "questionText": "Question Text",
+      "responseText": "Response Text",
+      "status": "Status",
+      "notes": "Notes"
+    },
+    "statuses": {
+      "pending": "Pending",
+      "drafting": "Drafting",
+      "reviewed": "Reviewed",
+      "approved": "Approved"
+    },
+    "errors": {
+      "fetchFailed": "Unable to load questions",
+      "createFailed": "Unable to create question",
+      "updateFailed": "Unable to update question",
+      "deleteFailed": "Unable to delete question",
+      "extractFailed": "Unable to extract questions"
+    }
+  },
+  "llm": {
+    "chat": "AI Chat",
+    "send": "Send",
+    "selectModel": "Select Model",
+    "clearHistory": "Clear History",
+    "clearedHistory": "History cleared",
+    "applyToResponse": "Apply to Response",
+    "autoApply": "Auto-apply",
+    "thinking": "Thinking...",
+    "messagePlaceholder": "Type your message...",
+    "systemPromptLabel": "System Prompt",
+    "tokens": "Tokens",
+    "tokensIn": "Input Tokens",
+    "tokensOut": "Output Tokens",
+    "errors": {
+      "chatFailed": "Error sending message",
+      "modelsFailed": "Unable to load models",
+      "clearFailed": "Unable to clear history"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "saved": "Settings saved",
+    "sections": {
+      "azureOpenai": {
+        "title": "Azure OpenAI",
+        "description": "Azure OpenAI connection configuration for GPT models."
+      },
+      "azureAnthropic": {
+        "title": "Azure Anthropic",
+        "description": "Azure Anthropic connection configuration for Claude models."
+      },
+      "azureDi": {
+        "title": "Azure Document Intelligence (OCR)",
+        "description": "Azure Document Intelligence service configuration for document text extraction."
+      },
+      "defaultLlm": {
+        "title": "Default LLM Settings",
+        "description": "Default model and system prompt used for new conversations."
+      }
+    },
+    "fields": {
+      "azureOpenaiEndpoint": "Azure OpenAI Endpoint",
+      "azureOpenaiApiKey": "Azure OpenAI API Key",
+      "azureOpenaiApiVersion": "Azure OpenAI API Version",
+      "azureAnthropicEndpoint": "Azure Anthropic Endpoint",
+      "azureAnthropicApiKey": "Azure Anthropic API Key",
+      "azureDiEndpoint": "Azure Document Intelligence Endpoint",
+      "azureDiKey": "Azure Document Intelligence Key",
+      "defaultLlmModel": "Default LLM Model",
+      "defaultSystemPrompt": "Default System Prompt",
+      "defaultSystemPromptHelp": "This system prompt will be used by default for all LLM conversations, unless a specific prompt is defined at the dossier level."
+    },
+    "keys": {
+      "openai_api_key": {
+        "title": "OpenAI API Key",
+        "description": "Key for OpenAI API calls (GPT-4, etc.)"
+      },
+      "anthropic_api_key": {
+        "title": "Anthropic API Key",
+        "description": "Key for Anthropic API calls (Claude)"
+      },
+      "azure_di_endpoint": {
+        "title": "Azure Document Intelligence Endpoint",
+        "description": "Azure Document Intelligence service URL for OCR"
+      },
+      "azure_di_key": {
+        "title": "Azure Document Intelligence Key",
+        "description": "Access key for Azure Document Intelligence service"
+      },
+      "default_model": {
+        "title": "Default Model",
+        "description": "Default LLM model used for chats"
+      },
+      "system_prompt": {
+        "title": "Default System Prompt",
+        "description": "Default system instructions for the AI assistant"
+      }
+    },
+    "errors": {
+      "fetchFailed": "Unable to load settings",
+      "saveFailed": "Unable to save settings"
+    }
+  },
+  "export": {
+    "exportDocx": "Export to DOCX",
+    "exporting": "Exporting...",
+    "exported": "Document exported successfully",
+    "errors": {
+      "exportFailed": "Unable to export document"
+    }
+  },
+  "errors": {
+    "http": {
+      "generic": "An error occurred",
+      "unauthorized": "Unauthorized",
+      "forbidden": "Access forbidden",
+      "notFound": "Resource not found",
+      "serverError": "Server error",
+      "serviceUnavailable": "Service unavailable"
+    }
+  }
+}

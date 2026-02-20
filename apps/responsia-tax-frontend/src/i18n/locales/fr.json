@@ -1,0 +1,431 @@
+{
+  "common": {
+    "appName": "ResponsiaTax",
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "search": "Rechercher",
+    "edit": "Modifier",
+    "create": "Créer",
+    "close": "Fermer",
+    "open": "Ouvrir",
+    "upload": "Téléverser",
+    "download": "Télécharger",
+    "status": "Statut",
+    "noData": "Aucune donnée",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+    "actions": "Actions",
+    "locale": "fr-BE",
+    "yes": "Oui",
+    "no": "Non",
+    "required": "Obligatoire",
+    "optional": "Facultatif"
+  },
+  "nav": {
+    "home": "Accueil",
+    "dossiers": "Dossiers",
+    "settings": "Paramètres",
+    "questions": "Questions"
+  },
+  "dossier": {
+    "detail": "Détail du dossier",
+    "fields": {
+      "name": "Nom du dossier",
+      "companyName": "Nom de la société",
+      "companyNumber": "Numéro d'entreprise",
+      "taxType": "Type d'impôt",
+      "taxYear": "Exercice fiscal",
+      "reference": "Référence",
+      "controllerName": "Nom du contrôleur",
+      "controllerEmail": "Email du contrôleur",
+      "status": "Statut",
+      "notes": "Notes",
+      "systemPrompt": "Prompt système",
+      "createdAt": "Créé le",
+      "updatedAt": "Modifié le"
+    },
+    "statuses": {
+      "open": "Ouvert",
+      "in_progress": "En cours",
+      "completed": "Terminé",
+      "closed": "Clôturé"
+    }
+  },
+  "dossiers": {
+    "title": "Dossiers",
+    "create": "Nouveau dossier",
+    "created": "Dossier créé avec succès",
+    "updated": "Dossier mis à jour",
+    "deleted": "Dossier supprimé",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce dossier ?",
+    "statusFilter": {
+      "all": "Tous",
+      "open": "Ouverts",
+      "in_progress": "En cours",
+      "completed": "Terminés",
+      "closed": "Clôturés"
+    },
+    "fields": {
+      "name": "Nom du dossier",
+      "companyName": "Nom de la société",
+      "companyNumber": "Numéro d'entreprise",
+      "taxType": "Type d'impôt",
+      "taxYear": "Exercice fiscal",
+      "reference": "Référence",
+      "controllerName": "Nom du contrôleur",
+      "controllerEmail": "Email du contrôleur",
+      "status": "Statut",
+      "notes": "Notes",
+      "systemPrompt": "Prompt système",
+      "systemPromptHelp": "Ce prompt système remplace le prompt par défaut pour ce dossier. Il sera utilisé lors des conversations LLM."
+    },
+    "status": {
+      "open": "Ouvert",
+      "in_progress": "En cours",
+      "completed": "Terminé",
+      "closed": "Clôturé"
+    },
+    "createDialog": {
+      "title": "Créer un nouveau dossier",
+      "submit": "Créer le dossier"
+    },
+    "empty": {
+      "title": "Aucun dossier",
+      "description": "Créez votre premier dossier pour commencer."
+    },
+    "errors": {
+      "fetchFailed": "Impossible de charger les dossiers",
+      "createFailed": "Impossible de créer le dossier",
+      "updateFailed": "Impossible de mettre à jour le dossier",
+      "deleteFailed": "Impossible de supprimer le dossier",
+      "requiredFields": "Veuillez remplir tous les champs obligatoires"
+    }
+  },
+  "dossierDetail": {
+    "saved": "Dossier enregistré",
+    "notFound": "Dossier introuvable",
+    "roundCreated": "Tour créé avec succès",
+    "documentsUploaded": "Documents téléversés avec succès",
+    "documentDeleted": "Document supprimé",
+    "rounds": {
+      "title": "Tours de contrôle",
+      "add": "Ajouter un tour",
+      "empty": "Aucun tour de contrôle. Ajoutez le premier tour pour commencer.",
+      "tourN": "Tour {{n}}",
+      "received": "Reçu",
+      "deadline": "Échéance",
+      "questions": "questions"
+    },
+    "documents": {
+      "title": "Documents",
+      "upload": "Téléverser des documents",
+      "empty": "Aucun document téléversé",
+      "deleteTitle": "Supprimer le document",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible."
+    },
+    "errors": {
+      "fetchFailed": "Impossible de charger le dossier",
+      "saveFailed": "Impossible d'enregistrer le dossier",
+      "roundsFetchFailed": "Impossible de charger les tours",
+      "documentsFetchFailed": "Impossible de charger les documents",
+      "roundCreateFailed": "Impossible de créer le tour",
+      "uploadFailed": "Impossible de téléverser le document",
+      "deleteFailed": "Impossible de supprimer le document",
+      "downloadFailed": "Impossible de télécharger le document"
+    }
+  },
+  "round": {
+    "detail": "Détail du tour",
+    "create": "Nouveau tour",
+    "created": "Tour créé avec succès",
+    "updated": "Tour mis à jour",
+    "deleted": "Tour supprimé",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce tour ?",
+    "fields": {
+      "roundNumber": "Numéro du tour",
+      "receivedDate": "Date de réception",
+      "deadline": "Date limite",
+      "status": "Statut"
+    },
+    "statuses": {
+      "pending": "En attente",
+      "in_progress": "En cours",
+      "responded": "Répondu",
+      "closed": "Clôturé"
+    },
+    "errors": {
+      "fetchFailed": "Impossible de charger les tours",
+      "createFailed": "Impossible de créer le tour",
+      "updateFailed": "Impossible de mettre à jour le tour",
+      "deleteFailed": "Impossible de supprimer le tour"
+    }
+  },
+  "rounds": {
+    "status": {
+      "pending": "En attente",
+      "in_progress": "En cours",
+      "responded": "Répondu",
+      "closed": "Clôturé"
+    }
+  },
+  "roundDetail": {
+    "tourN": "Tour {{n}}",
+    "saved": "Tour enregistré",
+    "notFound": "Tour introuvable",
+    "deadlinePassed": "La date limite est dépassée !",
+    "deadlineApproaching": "La date limite approche (moins de 7 jours).",
+    "ocrInProgress": "OCR en cours, veuillez patienter...",
+    "ocrComplete": "OCR terminé avec succès",
+    "questionsExtracted": "{{count}} questions extraites avec succès",
+    "exported": "Document exporté avec succès",
+    "documentsUploaded": "Documents téléversés avec succès",
+    "fields": {
+      "receivedDate": "Date de réception",
+      "deadline": "Date limite",
+      "status": "Statut"
+    },
+    "questions": {
+      "title": "Questions",
+      "extract": "Extraire les questions",
+      "empty": "Aucune question pour ce tour.",
+      "emptyHint": "Téléversez un document de type \"Demande de renseignements\" puis cliquez sur \"Extraire les questions\".",
+      "response": "Réponse",
+      "answer": "Répondre"
+    },
+    "documents": {
+      "title": "Documents",
+      "upload": "Téléverser des documents",
+      "empty": "Aucun document pour ce tour.",
+      "ocr": "Lancer l'OCR"
+    },
+    "export": {
+      "title": "Export",
+      "description": "Exporter les questions et réponses de ce tour au format DOCX.",
+      "button": "Exporter en DOCX"
+    },
+    "errors": {
+      "fetchFailed": "Impossible de charger le tour",
+      "saveFailed": "Impossible d'enregistrer le tour",
+      "questionsFetchFailed": "Impossible de charger les questions",
+      "documentsFetchFailed": "Impossible de charger les documents",
+      "noQuestionDocument": "Aucun document de type \"Demande de renseignements\" trouvé. Téléversez-en un d'abord.",
+      "extractFailed": "Impossible d'extraire les questions",
+      "exportFailed": "Impossible d'exporter le document",
+      "uploadFailed": "Impossible de téléverser le document",
+      "ocrFailed": "Impossible de lancer l'OCR",
+      "downloadFailed": "Impossible de télécharger le document"
+    }
+  },
+  "questions": {
+    "status": {
+      "pending": "En attente",
+      "drafting": "En rédaction",
+      "reviewed": "Relu",
+      "approved": "Approuvé"
+    }
+  },
+  "questionDetail": {
+    "notFound": "Question introuvable",
+    "saved": "Réponse enregistrée",
+    "markedReviewed": "Réponse marquée comme relue",
+    "copiedToResponse": "Réponse copiée dans l'éditeur",
+    "chatCleared": "Historique de conversation effacé",
+    "backToRound": "Retour au tour",
+    "markReviewed": "Marquer comme relu",
+    "fields": {
+      "status": "Statut",
+      "notes": "Notes"
+    },
+    "response": {
+      "title": "Réponse",
+      "placeholder": "Rédigez votre réponse ici..."
+    },
+    "chat": {
+      "title": "Assistant IA",
+      "model": "Modèle",
+      "systemPrompt": "Prompt système",
+      "systemPromptPlaceholder": "Remplacer le prompt système par défaut pour cette conversation...",
+      "empty": "Commencez une conversation avec l'assistant IA pour vous aider à rédiger votre réponse.",
+      "thinking": "Réflexion en cours...",
+      "inputPlaceholder": "Tapez votre message...",
+      "send": "Envoyer",
+      "autoApply": "Appliquer automatiquement la réponse de l'IA à l'éditeur",
+      "copyToResponse": "Copier dans la réponse",
+      "quickDraft": "Rédiger une réponse",
+      "quickImprove": "Améliorer la réponse",
+      "quickSummarize": "Résumer",
+      "clearHistory": "Effacer l'historique"
+    },
+    "errors": {
+      "fetchFailed": "Impossible de charger la question",
+      "saveFailed": "Impossible d'enregistrer la réponse",
+      "chatFailed": "Erreur lors de l'envoi du message",
+      "clearFailed": "Impossible d'effacer l'historique",
+      "noResponseToImprove": "Rédigez d'abord une réponse avant de demander une amélioration."
+    }
+  },
+  "document": {
+    "upload": "Téléverser un document",
+    "uploaded": "Document téléversé avec succès",
+    "deleted": "Document supprimé",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce document ?",
+    "uploadDragDrop": "Glissez-déposez vos fichiers ici",
+    "uploadClickBrowse": "ou cliquez pour parcourir",
+    "types": {
+      "question_dr": "Demande de renseignements",
+      "support": "Pièce justificative",
+      "response_draft": "Brouillon de réponse",
+      "other": "Autre"
+    },
+    "ocr": {
+      "title": "Texte OCR",
+      "noText": "Aucun texte OCR disponible",
+      "extracting": "Extraction du texte en cours..."
+    },
+    "errors": {
+      "uploadFailed": "Impossible de téléverser le document",
+      "deleteFailed": "Impossible de supprimer le document",
+      "downloadFailed": "Impossible de télécharger le document"
+    }
+  },
+  "question": {
+    "detail": "Détail de la question",
+    "extract": "Extraire les questions",
+    "extracted": "Questions extraites avec succès",
+    "draft": "Rédiger",
+    "review": "Relire",
+    "approve": "Approuver",
+    "approved": "Question approuvée",
+    "create": "Nouvelle question",
+    "created": "Question créée avec succès",
+    "updated": "Question mise à jour",
+    "deleted": "Question supprimée",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette question ?",
+    "fields": {
+      "questionNumber": "Numéro",
+      "questionText": "Texte de la question",
+      "responseText": "Texte de la réponse",
+      "status": "Statut",
+      "notes": "Notes"
+    },
+    "statuses": {
+      "pending": "En attente",
+      "drafting": "En rédaction",
+      "reviewed": "Relu",
+      "approved": "Approuvé"
+    },
+    "errors": {
+      "fetchFailed": "Impossible de charger les questions",
+      "createFailed": "Impossible de créer la question",
+      "updateFailed": "Impossible de mettre à jour la question",
+      "deleteFailed": "Impossible de supprimer la question",
+      "extractFailed": "Impossible d'extraire les questions"
+    }
+  },
+  "llm": {
+    "chat": "Chat IA",
+    "send": "Envoyer",
+    "selectModel": "Choisir un modèle",
+    "clearHistory": "Effacer l'historique",
+    "clearedHistory": "Historique effacé",
+    "applyToResponse": "Appliquer à la réponse",
+    "autoApply": "Appliquer automatiquement",
+    "thinking": "Réflexion en cours...",
+    "messagePlaceholder": "Tapez votre message...",
+    "systemPromptLabel": "Prompt système",
+    "tokens": "Tokens",
+    "tokensIn": "Tokens entrée",
+    "tokensOut": "Tokens sortie",
+    "errors": {
+      "chatFailed": "Erreur lors de l'envoi du message",
+      "modelsFailed": "Impossible de charger les modèles",
+      "clearFailed": "Impossible d'effacer l'historique"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "saved": "Paramètres enregistrés",
+    "sections": {
+      "azureOpenai": {
+        "title": "Azure OpenAI",
+        "description": "Configuration de la connexion Azure OpenAI pour les modèles GPT."
+      },
+      "azureAnthropic": {
+        "title": "Azure Anthropic",
+        "description": "Configuration de la connexion Azure Anthropic pour les modèles Claude."
+      },
+      "azureDi": {
+        "title": "Azure Document Intelligence (OCR)",
+        "description": "Configuration du service Azure Document Intelligence pour l'extraction de texte des documents."
+      },
+      "defaultLlm": {
+        "title": "Paramètres LLM par défaut",
+        "description": "Modèle et prompt système utilisés par défaut pour les nouvelles conversations."
+      }
+    },
+    "fields": {
+      "azureOpenaiEndpoint": "Endpoint Azure OpenAI",
+      "azureOpenaiApiKey": "Clé API Azure OpenAI",
+      "azureOpenaiApiVersion": "Version API Azure OpenAI",
+      "azureAnthropicEndpoint": "Endpoint Azure Anthropic",
+      "azureAnthropicApiKey": "Clé API Azure Anthropic",
+      "azureDiEndpoint": "Endpoint Azure Document Intelligence",
+      "azureDiKey": "Clé Azure Document Intelligence",
+      "defaultLlmModel": "Modèle LLM par défaut",
+      "defaultSystemPrompt": "Prompt système par défaut",
+      "defaultSystemPromptHelp": "Ce prompt système sera utilisé par défaut pour toutes les conversations LLM, sauf si un prompt spécifique est défini au niveau du dossier."
+    },
+    "keys": {
+      "openai_api_key": {
+        "title": "Clé API OpenAI",
+        "description": "Clé pour les appels à l'API OpenAI (GPT-4, etc.)"
+      },
+      "anthropic_api_key": {
+        "title": "Clé API Anthropic",
+        "description": "Clé pour les appels à l'API Anthropic (Claude)"
+      },
+      "azure_di_endpoint": {
+        "title": "Endpoint Azure Document Intelligence",
+        "description": "URL du service Azure Document Intelligence pour l'OCR"
+      },
+      "azure_di_key": {
+        "title": "Clé Azure Document Intelligence",
+        "description": "Clé d'accès au service Azure Document Intelligence"
+      },
+      "default_model": {
+        "title": "Modèle par défaut",
+        "description": "Modèle LLM utilisé par défaut pour les chats"
+      },
+      "system_prompt": {
+        "title": "Prompt système par défaut",
+        "description": "Instructions système par défaut pour l'assistant IA"
+      }
+    },
+    "errors": {
+      "fetchFailed": "Impossible de charger les paramètres",
+      "saveFailed": "Impossible d'enregistrer les paramètres"
+    }
+  },
+  "export": {
+    "exportDocx": "Exporter en DOCX",
+    "exporting": "Export en cours...",
+    "exported": "Document exporté avec succès",
+    "errors": {
+      "exportFailed": "Impossible d'exporter le document"
+    }
+  },
+  "errors": {
+    "http": {
+      "generic": "Une erreur est survenue",
+      "unauthorized": "Non autorisé",
+      "forbidden": "Accès interdit",
+      "notFound": "Ressource non trouvée",
+      "serverError": "Erreur serveur",
+      "serviceUnavailable": "Service indisponible"
+    }
+  }
+}

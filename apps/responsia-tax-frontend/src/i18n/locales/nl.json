@@ -1,0 +1,254 @@
+{
+  "common": {
+    "appName": "ResponsiaTax",
+    "loading": "Laden...",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "confirm": "Bevestigen",
+    "back": "Terug",
+    "next": "Volgende",
+    "search": "Zoeken",
+    "edit": "Bewerken",
+    "create": "Aanmaken",
+    "close": "Sluiten",
+    "open": "Openen",
+    "upload": "Uploaden",
+    "download": "Downloaden",
+    "status": "Status",
+    "noData": "Geen gegevens",
+    "confirmDelete": "Weet u zeker dat u dit item wilt verwijderen?",
+    "actions": "Acties",
+    "locale": "nl-BE",
+    "yes": "Ja",
+    "no": "Nee",
+    "required": "Verplicht",
+    "optional": "Optioneel"
+  },
+  "nav": {
+    "home": "Startpagina",
+    "dossiers": "Dossiers",
+    "settings": "Instellingen",
+    "questions": "Vragen"
+  },
+  "dossier": {
+    "detail": "Dossierdetail",
+    "fields": {
+      "name": "Dossiernaam",
+      "companyName": "Bedrijfsnaam",
+      "companyNumber": "Ondernemingsnummer",
+      "taxType": "Belastingtype",
+      "taxYear": "Belastingjaar",
+      "reference": "Referentie",
+      "controllerName": "Naam controleur",
+      "controllerEmail": "E-mail controleur",
+      "status": "Status",
+      "notes": "Notities",
+      "systemPrompt": "Systeemprompt",
+      "createdAt": "Aangemaakt op",
+      "updatedAt": "Bijgewerkt op"
+    },
+    "statuses": {
+      "open": "Open",
+      "in_progress": "In behandeling",
+      "completed": "Voltooid",
+      "closed": "Gesloten"
+    }
+  },
+  "dossiers": {
+    "title": "Dossiers",
+    "create": "Nieuw dossier",
+    "created": "Dossier succesvol aangemaakt",
+    "updated": "Dossier bijgewerkt",
+    "deleted": "Dossier verwijderd",
+    "confirmDelete": "Weet u zeker dat u dit dossier wilt verwijderen?",
+    "statusFilter": {
+      "all": "Alle",
+      "open": "Open",
+      "in_progress": "In behandeling",
+      "completed": "Voltooid",
+      "closed": "Gesloten"
+    },
+    "fields": {
+      "name": "Dossiernaam",
+      "companyName": "Bedrijfsnaam",
+      "companyNumber": "Ondernemingsnummer",
+      "taxType": "Belastingtype",
+      "taxYear": "Belastingjaar",
+      "reference": "Referentie",
+      "controllerName": "Naam controleur",
+      "controllerEmail": "E-mail controleur"
+    },
+    "createDialog": {
+      "title": "Nieuw dossier aanmaken",
+      "submit": "Dossier aanmaken"
+    },
+    "empty": {
+      "title": "Geen dossiers",
+      "description": "Maak uw eerste dossier aan om te beginnen."
+    },
+    "errors": {
+      "fetchFailed": "Kan dossiers niet laden",
+      "createFailed": "Kan dossier niet aanmaken",
+      "updateFailed": "Kan dossier niet bijwerken",
+      "deleteFailed": "Kan dossier niet verwijderen",
+      "requiredFields": "Vul alle verplichte velden in"
+    }
+  },
+  "round": {
+    "detail": "Rondedetail",
+    "create": "Nieuwe ronde",
+    "created": "Ronde succesvol aangemaakt",
+    "updated": "Ronde bijgewerkt",
+    "deleted": "Ronde verwijderd",
+    "confirmDelete": "Weet u zeker dat u deze ronde wilt verwijderen?",
+    "fields": {
+      "roundNumber": "Rondenummer",
+      "receivedDate": "Ontvangstdatum",
+      "deadline": "Deadline",
+      "status": "Status"
+    },
+    "statuses": {
+      "pending": "In afwachting",
+      "in_progress": "In behandeling",
+      "responded": "Beantwoord",
+      "closed": "Gesloten"
+    },
+    "errors": {
+      "fetchFailed": "Kan rondes niet laden",
+      "createFailed": "Kan ronde niet aanmaken",
+      "updateFailed": "Kan ronde niet bijwerken",
+      "deleteFailed": "Kan ronde niet verwijderen"
+    }
+  },
+  "document": {
+    "upload": "Document uploaden",
+    "uploaded": "Document succesvol ge\u00fcpload",
+    "deleted": "Document verwijderd",
+    "confirmDelete": "Weet u zeker dat u dit document wilt verwijderen?",
+    "uploadDragDrop": "Sleep uw bestanden hierheen",
+    "uploadClickBrowse": "of klik om te bladeren",
+    "types": {
+      "question_dr": "Vraag om inlichtingen",
+      "support": "Bewijsstuk",
+      "response_draft": "Antwoordconcept",
+      "other": "Overig"
+    },
+    "ocr": {
+      "title": "OCR-tekst",
+      "noText": "Geen OCR-tekst beschikbaar",
+      "extracting": "Tekst wordt ge\u00ebxtraheerd..."
+    },
+    "errors": {
+      "uploadFailed": "Kan document niet uploaden",
+      "deleteFailed": "Kan document niet verwijderen",
+      "downloadFailed": "Kan document niet downloaden"
+    }
+  },
+  "question": {
+    "detail": "Vraagdetail",
+    "extract": "Vragen extraheren",
+    "extracted": "Vragen succesvol ge\u00ebxtraheerd",
+    "draft": "Opstellen",
+    "review": "Beoordelen",
+    "approve": "Goedkeuren",
+    "approved": "Vraag goedgekeurd",
+    "create": "Nieuwe vraag",
+    "created": "Vraag succesvol aangemaakt",
+    "updated": "Vraag bijgewerkt",
+    "deleted": "Vraag verwijderd",
+    "confirmDelete": "Weet u zeker dat u deze vraag wilt verwijderen?",
+    "fields": {
+      "questionNumber": "Nummer",
+      "questionText": "Vraagtekst",
+      "responseText": "Antwoordtekst",
+      "status": "Status",
+      "notes": "Notities"
+    },
+    "statuses": {
+      "pending": "In afwachting",
+      "drafting": "Wordt opgesteld",
+      "reviewed": "Beoordeeld",
+      "approved": "Goedgekeurd"
+    },
+    "errors": {
+      "fetchFailed": "Kan vragen niet laden",
+      "createFailed": "Kan vraag niet aanmaken",
+      "updateFailed": "Kan vraag niet bijwerken",
+      "deleteFailed": "Kan vraag niet verwijderen",
+      "extractFailed": "Kan vragen niet extraheren"
+    }
+  },
+  "llm": {
+    "chat": "AI Chat",
+    "send": "Verzenden",
+    "selectModel": "Model kiezen",
+    "clearHistory": "Geschiedenis wissen",
+    "clearedHistory": "Geschiedenis gewist",
+    "applyToResponse": "Toepassen op antwoord",
+    "autoApply": "Automatisch toepassen",
+    "thinking": "Aan het nadenken...",
+    "messagePlaceholder": "Typ uw bericht...",
+    "systemPromptLabel": "Systeemprompt",
+    "tokens": "Tokens",
+    "tokensIn": "Invoertokens",
+    "tokensOut": "Uitvoertokens",
+    "errors": {
+      "chatFailed": "Fout bij het verzenden van bericht",
+      "modelsFailed": "Kan modellen niet laden",
+      "clearFailed": "Kan geschiedenis niet wissen"
+    }
+  },
+  "settings": {
+    "title": "Instellingen",
+    "saved": "Instellingen opgeslagen",
+    "keys": {
+      "openai_api_key": {
+        "title": "OpenAI API-sleutel",
+        "description": "Sleutel voor OpenAI API-aanroepen (GPT-4, enz.)"
+      },
+      "anthropic_api_key": {
+        "title": "Anthropic API-sleutel",
+        "description": "Sleutel voor Anthropic API-aanroepen (Claude)"
+      },
+      "azure_di_endpoint": {
+        "title": "Azure Document Intelligence Endpoint",
+        "description": "URL van de Azure Document Intelligence-service voor OCR"
+      },
+      "azure_di_key": {
+        "title": "Azure Document Intelligence-sleutel",
+        "description": "Toegangssleutel voor de Azure Document Intelligence-service"
+      },
+      "default_model": {
+        "title": "Standaardmodel",
+        "description": "Standaard LLM-model voor chats"
+      },
+      "system_prompt": {
+        "title": "Standaard systeemprompt",
+        "description": "Standaard systeeminstructies voor de AI-assistent"
+      }
+    },
+    "errors": {
+      "fetchFailed": "Kan instellingen niet laden",
+      "saveFailed": "Kan instellingen niet opslaan"
+    }
+  },
+  "export": {
+    "exportDocx": "Exporteren naar DOCX",
+    "exporting": "Bezig met exporteren...",
+    "exported": "Document succesvol ge\u00ebxporteerd",
+    "errors": {
+      "exportFailed": "Kan document niet exporteren"
+    }
+  },
+  "errors": {
+    "http": {
+      "generic": "Er is een fout opgetreden",
+      "unauthorized": "Niet geautoriseerd",
+      "forbidden": "Toegang verboden",
+      "notFound": "Bron niet gevonden",
+      "serverError": "Serverfout",
+      "serviceUnavailable": "Service niet beschikbaar"
+    }
+  }
+}

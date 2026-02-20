@@ -1,0 +1,17 @@
+{
+  "name": "shared-types",
+  "sourceRoot": "libs/shared-types/src",
+  "projectType": "library",
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsc --noEmit -p libs/shared-types/tsconfig.json"
+      }
+    }
+  },
+  "tags": ["scope:shared", "type:types"]
+}
