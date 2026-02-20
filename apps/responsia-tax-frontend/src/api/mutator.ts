@@ -48,13 +48,11 @@ export const getApiErrorMessage = (error: unknown): string => {
 const getBaseUrl = (): string => {
   const env = import.meta.env as Record<string, string | undefined>;
   const baseUrl = env.VITE_API_URL;
-  if (!baseUrl || baseUrl.trim().length === 0) {
-    console.warn(
-      'VITE_API_URL is not set — API calls will target localhost:3000. Set it in .env for production.',
-    );
-    return 'http://localhost:3000';
+  if (baseUrl && baseUrl.trim().length > 0) {
+    return baseUrl;
   }
-  return baseUrl;
+  // Same-origin: frontend is served by the backend, so relative path works everywhere
+  return '';
 };
 
 export const AXIOS_INSTANCE = Axios.create({
