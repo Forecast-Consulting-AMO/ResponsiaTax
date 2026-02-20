@@ -47,7 +47,8 @@ import { ExportModule } from '../export/export.module';
           ? { rejectUnauthorized: false }
           : false,
         autoLoadEntities: true,
-        synchronize: config.get('NODE_ENV') !== 'production',
+        // TODO: switch to migrations once schema stabilises
+        synchronize: true,
       }),
     }),
 
