@@ -71,6 +71,7 @@ export const QuestionDetailPage = () => {
   const [chatInput, setChatInput] = useState('');
   const [sending, setSending] = useState(false);
   const [autoApply, setAutoApply] = useState(false);
+  const [includeDocuments, setIncludeDocuments] = useState(true);
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const [systemPromptOverride, setSystemPromptOverride] = useState('');
 
@@ -221,6 +222,7 @@ export const QuestionDetailPage = () => {
         model: selectedModel,
         systemPrompt: systemPromptOverride || undefined,
         autoApplyToResponse: autoApply,
+        includeDocuments,
       });
 
       // If auto-apply is enabled, update response text
@@ -246,6 +248,7 @@ export const QuestionDetailPage = () => {
     selectedModel,
     systemPromptOverride,
     autoApply,
+    includeDocuments,
     question,
     enqueueSnackbar,
     t,
@@ -766,21 +769,38 @@ export const QuestionDetailPage = () => {
                 </span>
               </Tooltip>
             </Box>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={autoApply}
-                  onChange={(e) => setAutoApply(e.target.checked)}
-                  size="small"
-                />
-              }
-              label={
-                <Typography variant="caption">
-                  {t('questionDetail.chat.autoApply')}
-                </Typography>
-              }
-              sx={{ mt: 0.5 }}
-            />
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={autoApply}
+                    onChange={(e) => setAutoApply(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label={
+                  <Typography variant="caption">
+                    {t('questionDetail.chat.autoApply')}
+                  </Typography>
+                }
+                sx={{ mt: 0.5 }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={includeDocuments}
+                    onChange={(e) => setIncludeDocuments(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label={
+                  <Typography variant="caption">
+                    {t('questionDetail.chat.includeDocuments')}
+                  </Typography>
+                }
+                sx={{ mt: 0.5 }}
+              />
+            </Box>
           </Box>
         </Paper>
       </Box>

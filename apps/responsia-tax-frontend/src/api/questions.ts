@@ -27,9 +27,10 @@ export const questionsApi = {
 
   remove: (id: string) => AXIOS_INSTANCE.delete(`/api/v1/questions/${id}`),
 
-  extractQuestions: (roundId: string, documentId: string) =>
-    AXIOS_INSTANCE.post<Question[]>(
-      `${ROUNDS_BASE}/${roundId}/questions/extract`,
-      { document_id: documentId },
+  extractQuestions: (documentId: string, roundId: string, model?: string) =>
+    AXIOS_INSTANCE.post(
+      `/api/v1/documents/${documentId}/extract-questions`,
+      undefined,
+      { params: { round_id: roundId, ...(model ? { model } : {}) } },
     ).then((r) => r.data),
 };

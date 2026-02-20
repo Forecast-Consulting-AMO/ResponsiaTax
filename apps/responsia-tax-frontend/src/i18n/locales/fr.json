@@ -254,6 +254,7 @@
       "inputPlaceholder": "Tapez votre message...",
       "send": "Envoyer",
       "autoApply": "Appliquer automatiquement la réponse de l'IA à l'éditeur",
+      "includeDocuments": "Inclure les documents (RAG)",
       "copyToResponse": "Copier dans la réponse",
       "quickDraft": "Rédiger une réponse",
       "quickImprove": "Améliorer la réponse",

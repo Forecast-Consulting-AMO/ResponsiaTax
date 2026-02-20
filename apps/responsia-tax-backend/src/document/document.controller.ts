@@ -13,6 +13,7 @@ import {
   ParseUUIDPipe,
   UploadedFile,
   UseInterceptors,
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -25,12 +26,20 @@ import {
 } from '@nestjs/swagger';
 import * as express from 'express';
 import { DocumentService } from './document.service';
+import { OcrService } from './ocr.service';
+import { RagService } from './rag.service';
 import { DocType } from './entities/document.entity';
 
 @ApiTags('documents')
 @Controller({ version: '1' })
 export class DocumentController {
-  constructor(private readonly documentService: DocumentService) {}
+  private readonly logger = new Logger(DocumentController.name);
+
+  constructor(
+    private readonly documentService: DocumentService,
+    private readonly ocrService: OcrService,
+    private readonly ragService: RagService,
+  ) {}
 
   @Post('dossiers/:dossierId/documents')
   @HttpCode(HttpStatus.CREATED)
@@ -107,15 +116,60 @@ export class DocumentController {
   }
 
   @Post('documents/:id/ocr')
-  @ApiOperation({ summary: 'Trigger OCR extraction for a document (placeholder)' })
-  @ApiResponse({ status: 200, description: 'OCR triggered' })
+  @ApiOperation({ summary: 'Run OCR on a document and auto-chunk for RAG' })
+  @ApiResponse({ status: 200, description: 'OCR + chunking complete' })
   @ApiResponse({ status: 404, description: 'Document not found' })
   async triggerOcr(@Param('id', ParseUUIDPipe) id: string) {
-    // Placeholder: actual OCR implementation will be done separately
     const doc = await this.documentService.findOne(id);
+
+    // If already OCR'd, skip OCR but re-chunk
+    if (doc.ocr_text) {
+      const chunkCount = await this.ragService.chunkDocument(
+        doc.id,
+        doc.dossier_id,
+        doc.ocr_text,
+        doc.filename,
+      );
+      return {
+        id: doc.id,
+        ocr_text_length: doc.ocr_text.length,
+        chunks_created: chunkCount,
+        message: 'Document already OCR\'d. Re-chunked for RAG.',
+      };
+    }
+
+    // Run OCR
+    this.logger.log(`Running OCR on document ${doc.id} (${doc.filename})`);
+    const ocrResult = await this.ocrService.extractText(doc.file_path);
+
+    // Save OCR text to document
+    const updated = await this.documentService.updateOcr(
+      doc.id,
+      ocrResult.fullText,
+      ocrResult.pages as Record<string, unknown>[],
+    );
+
+    // Auto-chunk for RAG
+    const chunkCount = await this.ragService.chunkDocument(
+      doc.id,
+      doc.dossier_id,
+      ocrResult.fullText,
+      doc.filename,
+    );
+
     return {
-      id: doc.id,
-      message: 'OCR extraction not yet implemented. This is a placeholder endpoint.',
+      id: updated.id,
+      ocr_text_length: ocrResult.fullText.length,
+      pages: ocrResult.pages.length,
+      chunks_created: chunkCount,
     };
+  }
+
+  @Get('dossiers/:dossierId/chunks/count')
+  @ApiOperation({ summary: 'Get RAG chunk count for a dossier' })
+  @ApiResponse({ status: 200, description: 'Chunk count' })
+  async getChunkCount(@Param('dossierId', ParseUUIDPipe) dossierId: string) {
+    const count = await this.ragService.getChunkCount(dossierId);
+    return { dossier_id: dossierId, chunk_count: count };
   }
 }

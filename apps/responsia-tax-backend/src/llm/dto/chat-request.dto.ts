@@ -22,4 +22,12 @@ export class ChatRequestDto {
   @IsOptional()
   @IsBoolean()
   autoApplyToResponse?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'If true (default), search dossier documents via RAG and include relevant excerpts in context',
+    default: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  includeDocuments?: boolean;
 }

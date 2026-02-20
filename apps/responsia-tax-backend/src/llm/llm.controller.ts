@@ -15,6 +15,8 @@ import { Repository } from 'typeorm';
 import { LlmService, AVAILABLE_MODELS } from './llm.service';
 import { LlmMessage, LlmRole } from './entities/llm-message.entity';
 import { ChatRequestDto } from './dto/chat-request.dto';
+import { RagService } from '../document/rag.service';
+import { SettingService } from '../setting/setting.service';
 
 @ApiTags('LLM')
 @Controller({ version: '1' })
@@ -23,6 +25,8 @@ export class LlmController {
 
   constructor(
     private readonly llmService: LlmService,
+    private readonly ragService: RagService,
+    private readonly settingService: SettingService,
     @InjectRepository(LlmMessage)
     private readonly llmMessageRepo: Repository<LlmMessage>,
   ) {}
@@ -42,7 +46,7 @@ export class LlmController {
   ) {
     // Verify the question exists by querying the questions table directly
     const questionRow = await this.llmMessageRepo.manager.query(
-      `SELECT q.id, q.question_text, q.response_text, r.dossier_id
+      `SELECT q.id, q.question_text, q.question_number, q.response_text, r.dossier_id
        FROM questions q
        JOIN rounds r ON r.id = q.round_id
        WHERE q.id = $1`,
@@ -56,22 +60,11 @@ export class LlmController {
     // Load existing messages for this question
     let messages = await this.llmService.getMessages(questionId);
 
-    // If no messages exist and a system prompt is provided, insert it
+    // If no messages exist, build a rich system prompt with context
     if (messages.length === 0) {
-      let systemPrompt = dto.systemPrompt;
+      const systemPrompt = await this.buildSystemPrompt(dto, question);
 
-      // Fallback to dossier system_prompt if not provided
-      if (!systemPrompt && question.dossier_id) {
-        const dossierRow = await this.llmMessageRepo.manager.query(
-          `SELECT system_prompt FROM dossiers WHERE id = $1`,
-          [question.dossier_id],
-        );
-        if (dossierRow?.[0]?.system_prompt) {
-          systemPrompt = dossierRow[0].system_prompt;
-        }
-      }
-
-      if (systemPrompt) {
+      if (systemPrompt.trim()) {
         await this.llmService.saveMessage({
           questionId,
           role: LlmRole.SYSTEM,
@@ -127,6 +120,68 @@ export class LlmController {
       tokensOut: response.tokensOut,
       createdAt: assistantMsg.created_at,
     };
+  }
+
+  /**
+   * Build the system prompt for the first message of a chat.
+   * Combines: base prompt + question context + RAG document excerpts.
+   */
+  private async buildSystemPrompt(
+    dto: ChatRequestDto,
+    question: { question_text: string; question_number: number; dossier_id: string },
+  ): Promise<string> {
+    const parts: string[] = [];
+
+    // 1. Base system prompt (DTO override > dossier > settings default)
+    let basePrompt = dto.systemPrompt;
+    if (!basePrompt && question.dossier_id) {
+      const dossierRow = await this.llmMessageRepo.manager.query(
+        `SELECT system_prompt FROM dossiers WHERE id = $1`,
+        [question.dossier_id],
+      );
+      if (dossierRow?.[0]?.system_prompt) {
+        basePrompt = dossierRow[0].system_prompt;
+      }
+    }
+    if (!basePrompt) {
+      basePrompt = await this.settingService.get('default_system_prompt') ?? '';
+    }
+    if (basePrompt.trim()) {
+      parts.push(basePrompt.trim());
+    }
+
+    // 2. Question context
+    parts.push(
+      `---\nQUESTION DU CONTRÔLEUR (Question ${question.question_number ?? ''}):\n${question.question_text}`,
+    );
+
+    // 3. RAG document excerpts (if enabled, default: true)
+    if (dto.includeDocuments !== false && question.dossier_id) {
+      const ragResults = await this.ragService.search(
+        question.question_text,
+        question.dossier_id,
+        5,
+      );
+
+      if (ragResults.length > 0) {
+        const excerpts = ragResults.map((r) => {
+          const content = r.content.length > 800
+            ? r.content.substring(0, 800) + '\n[...]'
+            : r.content;
+          return `[Source: ${r.filename}]\n${content}`;
+        }).join('\n\n---\n\n');
+
+        parts.push(
+          `EXTRAITS DE DOCUMENTS DE RÉFÉRENCE (utilisez-les pour enrichir votre réponse):\n\n${excerpts}\n\nIMPORTANT: Inspirez-vous de ces extraits pour structurer et enrichir votre réponse, mais ne les copiez pas verbatim.`,
+        );
+
+        this.logger.log(
+          `RAG: injected ${ragResults.length} chunk(s) for question ${question.question_number}`,
+        );
+      }
+    }
+
+    return parts.join('\n\n');
   }
 
   @Get('questions/:questionId/messages')

@@ -20,6 +20,7 @@ export interface ChatRequest {
   model: string;
   systemPrompt?: string;
   autoApplyToResponse?: boolean;
+  includeDocuments?: boolean;
 }
 
 export interface ChatResponse {

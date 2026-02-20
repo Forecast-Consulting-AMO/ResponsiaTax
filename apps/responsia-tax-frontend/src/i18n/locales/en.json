@@ -254,6 +254,7 @@
       "inputPlaceholder": "Type your message...",
       "send": "Send",
       "autoApply": "Auto-apply AI response to the editor",
+      "includeDocuments": "Include documents (RAG)",
       "copyToResponse": "Copy to response",
       "quickDraft": "Draft a response",
       "quickImprove": "Improve response",

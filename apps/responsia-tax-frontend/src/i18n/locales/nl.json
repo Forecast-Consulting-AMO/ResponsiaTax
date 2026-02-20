@@ -187,6 +187,7 @@
     "clearedHistory": "Geschiedenis gewist",
     "applyToResponse": "Toepassen op antwoord",
     "autoApply": "Automatisch toepassen",
+    "includeDocuments": "Documenten opnemen (RAG)",
     "thinking": "Aan het nadenken...",
     "messagePlaceholder": "Typ uw bericht...",
     "systemPromptLabel": "Systeemprompt",

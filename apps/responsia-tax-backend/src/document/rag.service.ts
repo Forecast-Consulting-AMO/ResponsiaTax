@@ -1,0 +1,242 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
+import { DocumentChunk } from './entities/document-chunk.entity';
+
+export interface ChunkResult {
+  id: string;
+  content: string;
+  section_title: string | null;
+  filename: string;
+  doc_type: string;
+  score: number;
+}
+
+@Injectable()
+export class RagService {
+  private readonly logger = new Logger(RagService.name);
+
+  constructor(
+    @InjectRepository(DocumentChunk)
+    private readonly chunkRepo: Repository<DocumentChunk>,
+    private readonly dataSource: DataSource,
+  ) {}
+
+  /**
+   * Ensure pg_trgm extension is available (idempotent).
+   * Called once at startup from the module.
+   */
+  async ensureExtensions(): Promise<void> {
+    try {
+      await this.dataSource.query(`CREATE EXTENSION IF NOT EXISTS pg_trgm`);
+      this.logger.log('pg_trgm extension ready');
+    } catch (err) {
+      this.logger.warn('Could not create pg_trgm extension (may need superuser): ' + err);
+    }
+  }
+
+  /**
+   * Ensure tsvector + trgm indexes exist on document_chunks.
+   * Called after TypeORM sync creates the table.
+   */
+  async ensureIndexes(): Promise<void> {
+    try {
+      // Full-text search index
+      await this.dataSource.query(`
+        CREATE INDEX IF NOT EXISTS idx_chunks_search
+        ON document_chunks USING GIN (to_tsvector('french', content))
+      `);
+      // Trigram index for fallback fuzzy search
+      await this.dataSource.query(`
+        CREATE INDEX IF NOT EXISTS idx_chunks_trgm
+        ON document_chunks USING GIN (content gin_trgm_ops)
+      `);
+      this.logger.log('RAG indexes ready');
+    } catch (err) {
+      this.logger.warn('Could not create RAG indexes: ' + err);
+    }
+  }
+
+  // ---- Chunking ----
+
+  /**
+   * Split text into overlapping chunks, respecting paragraph/sentence boundaries.
+   * Mirrors the ReponsIA approach: ~1500 chars, 200 overlap.
+   */
+  chunkText(
+    text: string,
+    maxChars = 1500,
+    overlap = 200,
+  ): Array<{ content: string; startChar: number; endChar: number }> {
+    // Normalize whitespace
+    const normalized = text.replace(/\n{3,}/g, '\n\n').trim();
+    if (!normalized) return [];
+
+    const chunks: Array<{ content: string; startChar: number; endChar: number }> = [];
+    let pos = 0;
+
+    while (pos < normalized.length) {
+      let end = Math.min(pos + maxChars, normalized.length);
+
+      // If we're not at the end, try to break at a good boundary
+      if (end < normalized.length) {
+        // Try paragraph break first
+        const paraBreak = normalized.lastIndexOf('\n\n', end);
+        if (paraBreak > pos + maxChars * 0.3) {
+          end = paraBreak + 2; // include the double newline
+        } else {
+          // Try sentence break
+          const sentenceBreak = Math.max(
+            normalized.lastIndexOf('. ', end),
+            normalized.lastIndexOf('.\n', end),
+            normalized.lastIndexOf(';\n', end),
+            normalized.lastIndexOf(':\n', end),
+          );
+          if (sentenceBreak > pos + maxChars * 0.3) {
+            end = sentenceBreak + 1;
+          }
+        }
+      }
+
+      const chunk = normalized.slice(pos, end).trim();
+      if (chunk.length >= 50) {
+        chunks.push({ content: chunk, startChar: pos, endChar: end });
+      }
+
+      // Move forward, but overlap by `overlap` chars
+      pos = end - overlap;
+      if (pos <= chunks[chunks.length - 1]?.startChar) {
+        // Prevent infinite loop
+        pos = end;
+      }
+    }
+
+    return chunks;
+  }
+
+  /**
+   * Chunk a document's OCR text and store in document_chunks.
+   * Deletes existing chunks for that document first (idempotent).
+   */
+  async chunkDocument(
+    documentId: string,
+    dossierId: string,
+    ocrText: string,
+    filename: string,
+  ): Promise<number> {
+    // Remove old chunks for this document
+    await this.chunkRepo.delete({ document_id: documentId });
+
+    const rawChunks = this.chunkText(ocrText);
+    if (rawChunks.length === 0) {
+      this.logger.warn(`No chunks generated for document ${documentId} (${filename})`);
+      return 0;
+    }
+
+    const entities = rawChunks.map((c) =>
+      this.chunkRepo.create({
+        dossier_id: dossierId,
+        document_id: documentId,
+        content: c.content,
+        start_char: c.startChar,
+        end_char: c.endChar,
+      }),
+    );
+
+    await this.chunkRepo.save(entities);
+
+    this.logger.log(
+      `Chunked document ${filename}: ${entities.length} chunks (${ocrText.length} chars)`,
+    );
+    return entities.length;
+  }
+
+  // ---- Retrieval ----
+
+  /**
+   * Two-stage search: full-text (French) primary, trigram fallback.
+   * Returns top-k results scoped to a dossier.
+   */
+  async search(
+    query: string,
+    dossierId: string,
+    topK = 5,
+  ): Promise<ChunkResult[]> {
+    // Build tsquery: split into words > 2 chars, join with OR
+    const words = query
+      .split(/\s+/)
+      .filter((w) => w.length > 2)
+      .map((w) => w.replace(/[^a-zA-ZÀ-ÿ0-9]/g, ''))
+      .filter(Boolean);
+
+    if (words.length === 0) return [];
+
+    const tsQuery = words.join(' | ');
+
+    // Stage 1: Full-text search
+    const fullTextResults: ChunkResult[] = await this.dataSource.query(
+      `SELECT c.id, c.content, c.section_title,
+              d.filename, d.doc_type,
+              ts_rank_cd(to_tsvector('french', c.content), to_tsquery('french', $1)) AS score
+       FROM document_chunks c
+       JOIN documents d ON d.id = c.document_id
+       WHERE c.dossier_id = $2
+         AND to_tsvector('french', c.content) @@ to_tsquery('french', $1)
+       ORDER BY score DESC
+       LIMIT $3`,
+      [tsQuery, dossierId, topK],
+    );
+
+    // If we have enough results, return them
+    if (fullTextResults.length >= topK) {
+      return fullTextResults;
+    }
+
+    // Stage 2: Trigram fallback for remaining slots
+    const remaining = topK - fullTextResults.length;
+    const excludeIds = fullTextResults.map((r) => r.id);
+
+    let trigramResults: ChunkResult[] = [];
+    try {
+      if (excludeIds.length > 0) {
+        trigramResults = await this.dataSource.query(
+          `SELECT c.id, c.content, c.section_title,
+                  d.filename, d.doc_type,
+                  similarity(c.content, $1) AS score
+           FROM document_chunks c
+           JOIN documents d ON d.id = c.document_id
+           WHERE c.dossier_id = $2
+             AND c.id != ALL($3::uuid[])
+             AND similarity(c.content, $1) > 0.05
+           ORDER BY score DESC
+           LIMIT $4`,
+          [query, dossierId, excludeIds, remaining],
+        );
+      } else {
+        trigramResults = await this.dataSource.query(
+          `SELECT c.id, c.content, c.section_title,
+                  d.filename, d.doc_type,
+                  similarity(c.content, $1) AS score
+           FROM document_chunks c
+           JOIN documents d ON d.id = c.document_id
+           WHERE c.dossier_id = $2
+             AND similarity(c.content, $1) > 0.05
+           ORDER BY score DESC
+           LIMIT $3`,
+          [query, dossierId, remaining],
+        );
+      }
+    } catch (err) {
+      this.logger.warn('Trigram search failed (pg_trgm may not be available): ' + err);
+    }
+
+    return [...fullTextResults, ...trigramResults];
+  }
+
+  /**
+   * Get chunk count for a dossier (for UI indicators).
+   */
+  async getChunkCount(dossierId: string): Promise<number> {
+    return this.chunkRepo.count({ where: { dossier_id: dossierId } });
+  }
+}

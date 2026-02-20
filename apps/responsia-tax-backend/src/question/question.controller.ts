@@ -5,26 +5,38 @@ import {
   Patch,
   Param,
   Body,
+  Query,
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
+import { QuestionExtractionService } from './question-extraction.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { DocumentService } from '../document/document.service';
+import { OcrService } from '../document/ocr.service';
+import { RagService } from '../document/rag.service';
 
 @ApiTags('questions')
 @Controller({ version: '1' })
 export class QuestionController {
+  private readonly logger = new Logger(QuestionController.name);
+
   constructor(
     private readonly questionService: QuestionService,
+    private readonly questionExtractionService: QuestionExtractionService,
     private readonly documentService: DocumentService,
+    private readonly ocrService: OcrService,
+    private readonly ragService: RagService,
   ) {}
 
   @Get('rounds/:roundId/questions')
@@ -46,22 +58,59 @@ export class QuestionController {
   }
 
   @Post('documents/:docId/extract-questions')
-  @ApiOperation({ summary: 'Auto-extract questions from a document OCR text (placeholder)' })
-  @ApiResponse({ status: 200, description: 'Questions extracted' })
+  @ApiOperation({ summary: 'Run OCR (if needed) + LLM extraction to create questions' })
+  @ApiQuery({ name: 'round_id', required: true, description: 'Round to attach questions to' })
+  @ApiQuery({ name: 'model', required: false, description: 'LLM model override' })
+  @ApiResponse({ status: 200, description: 'Questions extracted and created' })
   @ApiResponse({ status: 404, description: 'Document not found' })
-  async extractQuestions(@Param('docId', ParseUUIDPipe) docId: string) {
-    const doc = await this.documentService.findOne(docId);
-    if (!doc.ocr_text) {
-      return {
-        message: 'No OCR text available for this document. Run OCR first.',
-        questions: [],
-      };
+  async extractQuestions(
+    @Param('docId', ParseUUIDPipe) docId: string,
+    @Query('round_id') roundId: string,
+    @Query('model') model?: string,
+  ) {
+    if (!roundId) {
+      throw new BadRequestException('round_id query parameter is required');
     }
-    // Placeholder: actual LLM-based extraction will be done separately
+
+    const doc = await this.documentService.findOne(docId);
+
+    // Run OCR if not already done
+    let ocrText = doc.ocr_text;
+    if (!ocrText) {
+      this.logger.log(`Running OCR on document ${doc.id} before extraction`);
+      const ocrResult = await this.ocrService.extractText(doc.file_path);
+      await this.documentService.updateOcr(
+        doc.id,
+        ocrResult.fullText,
+        ocrResult.pages as Record<string, unknown>[],
+      );
+      ocrText = ocrResult.fullText;
+
+      // Auto-chunk for RAG
+      await this.ragService.chunkDocument(
+        doc.id,
+        doc.dossier_id,
+        ocrText,
+        doc.filename,
+      );
+    }
+
+    // Extract questions via LLM
+    const extracted = await this.questionExtractionService.extractQuestions(ocrText, model);
+
+    // Create question records
+    const questions = await this.questionService.createBulk(
+      roundId,
+      extracted.map((q) => ({
+        question_number: q.questionNumber,
+        question_text: q.questionText,
+      })),
+    );
+
     return {
-      message: 'Question extraction not yet implemented. This is a placeholder endpoint.',
       document_id: doc.id,
-      ocr_text_length: doc.ocr_text.length,
+      questions_extracted: questions.length,
+      questions,
     };
   }
 
