@@ -14,25 +14,30 @@ export const documentsApi = {
       (r) => r.data,
     ),
 
-  upload: (
+  upload: async (
     dossierId: string,
     files: File[],
     docType: DocType,
     roundId?: string,
-  ) => {
-    const formData = new FormData();
-    files.forEach((file) => formData.append('files', file));
-    formData.append('doc_type', docType);
-    if (roundId) {
-      formData.append('round_id', roundId);
+  ): Promise<Document[]> => {
+    const results: Document[] = [];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('doc_type', docType);
+      if (roundId) {
+        formData.append('round_id', roundId);
+      }
+      const doc = await AXIOS_INSTANCE.post<Document>(
+        `${BASE}/${dossierId}/documents`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
+      ).then((r) => r.data);
+      results.push(doc);
     }
-    return AXIOS_INSTANCE.post<Document[]>(
-      `${BASE}/${dossierId}/documents`,
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      },
-    ).then((r) => r.data);
+    return results;
   },
 
   remove: (id: string) => AXIOS_INSTANCE.delete(`/api/v1/documents/${id}`),

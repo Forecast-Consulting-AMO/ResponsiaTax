@@ -95,6 +95,47 @@
       "requiredFields": "Vul alle verplichte velden in"
     }
   },
+  "dossierDetail": {
+    "saved": "Dossier opgeslagen",
+    "notFound": "Dossier niet gevonden",
+    "roundCreated": "Ronde succesvol aangemaakt",
+    "documentsUploaded": "Documenten succesvol geüpload",
+    "documentDeleted": "Document verwijderd",
+    "rounds": {
+      "title": "Controleronden",
+      "add": "Ronde toevoegen",
+      "empty": "Geen controleronden. Voeg de eerste ronde toe om te beginnen.",
+      "tourN": "Ronde {{n}}",
+      "received": "Ontvangen",
+      "deadline": "Deadline",
+      "questions": "vragen"
+    },
+    "documents": {
+      "title": "Documenten",
+      "upload": "Documenten uploaden",
+      "empty": "Geen documenten geüpload",
+      "deleteTitle": "Document verwijderen",
+      "deleteMessage": "Weet u zeker dat u dit document wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+    },
+    "errors": {
+      "fetchFailed": "Kan dossier niet laden",
+      "saveFailed": "Kan dossier niet opslaan",
+      "roundsFetchFailed": "Kan rondes niet laden",
+      "documentsFetchFailed": "Kan documenten niet laden",
+      "roundCreateFailed": "Kan ronde niet aanmaken",
+      "uploadFailed": "Kan document niet uploaden",
+      "deleteFailed": "Kan document niet verwijderen",
+      "downloadFailed": "Kan document niet downloaden"
+    }
+  },
+  "rounds": {
+    "status": {
+      "pending": "In afwachting",
+      "in_progress": "In behandeling",
+      "responded": "Beantwoord",
+      "closed": "Gesloten"
+    }
+  },
   "round": {
     "detail": "Rondedetail",
     "create": "Nieuwe ronde",
@@ -119,6 +160,103 @@
       "createFailed": "Kan ronde niet aanmaken",
       "updateFailed": "Kan ronde niet bijwerken",
       "deleteFailed": "Kan ronde niet verwijderen"
+    }
+  },
+  "roundDetail": {
+    "tourN": "Ronde {{n}}",
+    "saved": "Ronde opgeslagen",
+    "notFound": "Ronde niet gevonden",
+    "deadlinePassed": "De deadline is verstreken!",
+    "deadlineApproaching": "De deadline nadert (minder dan 7 dagen).",
+    "ocrInProgress": "OCR bezig, even geduld...",
+    "ocrComplete": "OCR succesvol voltooid",
+    "questionsExtracted": "{{count}} vragen succesvol geëxtraheerd",
+    "exported": "Document succesvol geëxporteerd",
+    "documentsUploaded": "Documenten succesvol geüpload",
+    "fields": {
+      "receivedDate": "Ontvangstdatum",
+      "deadline": "Deadline",
+      "status": "Status"
+    },
+    "questions": {
+      "title": "Vragen",
+      "extract": "Vragen extraheren",
+      "empty": "Geen vragen voor deze ronde.",
+      "emptyHint": "Upload een document van het type \"Vraag om inlichtingen\" en klik op \"Vragen extraheren\".",
+      "response": "Antwoord",
+      "answer": "Beantwoorden"
+    },
+    "documents": {
+      "title": "Documenten",
+      "upload": "Documenten uploaden",
+      "empty": "Geen documenten voor deze ronde.",
+      "ocr": "OCR starten"
+    },
+    "export": {
+      "title": "Export",
+      "description": "Exporteer de vragen en antwoorden van deze ronde naar DOCX-formaat.",
+      "button": "Exporteren naar DOCX"
+    },
+    "errors": {
+      "fetchFailed": "Kan ronde niet laden",
+      "saveFailed": "Kan ronde niet opslaan",
+      "questionsFetchFailed": "Kan vragen niet laden",
+      "documentsFetchFailed": "Kan documenten niet laden",
+      "noQuestionDocument": "Geen document van het type \"Vraag om inlichtingen\" gevonden. Upload er eerst een.",
+      "extractFailed": "Kan vragen niet extraheren",
+      "exportFailed": "Kan document niet exporteren",
+      "uploadFailed": "Kan document niet uploaden",
+      "ocrFailed": "Kan OCR niet starten",
+      "downloadFailed": "Kan document niet downloaden"
+    }
+  },
+  "questions": {
+    "status": {
+      "pending": "In afwachting",
+      "drafting": "Wordt opgesteld",
+      "reviewed": "Beoordeeld",
+      "approved": "Goedgekeurd"
+    }
+  },
+  "questionDetail": {
+    "notFound": "Vraag niet gevonden",
+    "saved": "Antwoord opgeslagen",
+    "markedReviewed": "Antwoord gemarkeerd als beoordeeld",
+    "copiedToResponse": "Antwoord gekopieerd naar editor",
+    "chatCleared": "Gespreksgeschiedenis gewist",
+    "backToRound": "Terug naar ronde",
+    "markReviewed": "Markeren als beoordeeld",
+    "fields": {
+      "status": "Status",
+      "notes": "Notities"
+    },
+    "response": {
+      "title": "Antwoord",
+      "placeholder": "Schrijf hier uw antwoord..."
+    },
+    "chat": {
+      "title": "AI-assistent",
+      "model": "Model",
+      "systemPrompt": "Systeemprompt",
+      "systemPromptPlaceholder": "Overschrijf de standaard systeemprompt voor dit gesprek...",
+      "empty": "Start een gesprek met de AI-assistent om u te helpen bij het opstellen van uw antwoord.",
+      "thinking": "Aan het nadenken...",
+      "inputPlaceholder": "Typ uw bericht...",
+      "send": "Verzenden",
+      "autoApply": "AI-antwoord automatisch toepassen op de editor",
+      "includeDocuments": "Documenten opnemen (RAG)",
+      "copyToResponse": "Kopiëren naar antwoord",
+      "quickDraft": "Antwoord opstellen",
+      "quickImprove": "Antwoord verbeteren",
+      "quickSummarize": "Samenvatten",
+      "clearHistory": "Geschiedenis wissen"
+    },
+    "errors": {
+      "fetchFailed": "Kan vraag niet laden",
+      "saveFailed": "Kan antwoord niet opslaan",
+      "chatFailed": "Fout bij het verzenden van bericht",
+      "clearFailed": "Kan geschiedenis niet wissen",
+      "noResponseToImprove": "Stel eerst een antwoord op voordat u om verbetering vraagt."
     }
   },
   "document": {
@@ -203,6 +341,36 @@
   "settings": {
     "title": "Instellingen",
     "saved": "Instellingen opgeslagen",
+    "sections": {
+      "azureOpenai": {
+        "title": "Azure OpenAI",
+        "description": "Azure OpenAI-verbindingsconfiguratie voor GPT-modellen."
+      },
+      "azureAnthropic": {
+        "title": "Azure Anthropic",
+        "description": "Azure Anthropic-verbindingsconfiguratie voor Claude-modellen."
+      },
+      "azureDi": {
+        "title": "Azure Document Intelligence (OCR)",
+        "description": "Azure Document Intelligence-serviceconfiguratie voor tekstextractie uit documenten."
+      },
+      "defaultLlm": {
+        "title": "Standaard LLM-instellingen",
+        "description": "Standaardmodel en systeemprompt voor nieuwe gesprekken."
+      }
+    },
+    "fields": {
+      "azureOpenaiEndpoint": "Azure OpenAI Endpoint",
+      "azureOpenaiApiKey": "Azure OpenAI API-sleutel",
+      "azureOpenaiApiVersion": "Azure OpenAI API-versie",
+      "azureAnthropicEndpoint": "Azure Anthropic Endpoint",
+      "azureAnthropicApiKey": "Azure Anthropic API-sleutel",
+      "azureDiEndpoint": "Azure Document Intelligence Endpoint",
+      "azureDiKey": "Azure Document Intelligence-sleutel",
+      "defaultLlmModel": "Standaard LLM-model",
+      "defaultSystemPrompt": "Standaard systeemprompt",
+      "defaultSystemPromptHelp": "Deze systeemprompt wordt standaard gebruikt voor alle LLM-gesprekken, tenzij een specifieke prompt op dossierniveau is ingesteld."
+    },
     "keys": {
       "openai_api_key": {
         "title": "OpenAI API-sleutel",
