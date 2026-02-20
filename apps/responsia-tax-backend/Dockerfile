@@ -5,7 +5,7 @@ RUN addgroup --system app && adduser --system --ingroup app app
 WORKDIR /app
 
 COPY dist/apps/responsia-tax-backend/package*.json ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev && npm install pg
 
 COPY dist/apps/responsia-tax-backend/ .
 
