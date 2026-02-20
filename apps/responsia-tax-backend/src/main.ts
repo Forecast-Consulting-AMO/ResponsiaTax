@@ -47,10 +47,13 @@ async function bootstrap() {
   const publicDir = join(__dirname, 'public');
   if (existsSync(publicDir)) {
     app.useStaticAssets(publicDir);
-    // SPA fallback: serve index.html for non-API routes
+    // SPA fallback: serve index.html for non-API routes (no-cache so new deploys take effect)
     const expressApp = app.getHttpAdapter().getInstance();
     const indexPath = join(publicDir, 'index.html');
     expressApp.get(/^(?!\/api\/).*/, (_req: any, res: any) => {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.sendFile(indexPath);
     });
   }
