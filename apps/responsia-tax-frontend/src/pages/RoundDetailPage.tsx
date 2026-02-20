@@ -77,6 +77,7 @@ export const RoundDetailPage = () => {
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [ocrLoading, setOcrLoading] = useState<string | null>(null);
+  const [uploadDocType, setUploadDocType] = useState<string>('question_dr');
 
   const [editReceivedDate, setEditReceivedDate] = useState('');
   const [editDeadline, setEditDeadline] = useState('');
@@ -176,10 +177,10 @@ export const RoundDetailPage = () => {
         await documentsApi.triggerOcr(questionDoc.id);
       }
 
-      // Extract questions from the document
+      // Extract questions from the document (documentId first, then roundId)
       const extracted = await questionsApi.extractQuestions(
-        round.id,
         questionDoc.id,
+        round.id,
       );
       enqueueSnackbar(
         t('roundDetail.questionsExtracted', { count: extracted.length }),
@@ -221,7 +222,7 @@ export const RoundDetailPage = () => {
       if (!round?.dossier_id) return;
       try {
         setUploading(true);
-        await documentsApi.upload(round.dossier_id, files, 'support', id);
+        await documentsApi.upload(round.dossier_id, files, uploadDocType as any, id);
         enqueueSnackbar(t('roundDetail.documentsUploaded'), {
           variant: 'success',
         });
@@ -589,6 +590,19 @@ export const RoundDetailPage = () => {
             </Typography>
 
             <Box sx={{ mb: 2 }}>
+              <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
+                <InputLabel>{t('document.upload')}</InputLabel>
+                <Select
+                  value={uploadDocType}
+                  onChange={(e) => setUploadDocType(e.target.value)}
+                  label={t('document.upload')}
+                >
+                  <MenuItem value="question_dr">{t('document.types.question_dr')}</MenuItem>
+                  <MenuItem value="support">{t('document.types.support')}</MenuItem>
+                  <MenuItem value="response_draft">{t('document.types.response_draft')}</MenuItem>
+                  <MenuItem value="other">{t('document.types.other')}</MenuItem>
+                </Select>
+              </FormControl>
               <FileUpload
                 onFilesSelected={handleFilesSelected}
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.png"
