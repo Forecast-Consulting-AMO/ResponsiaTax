@@ -29,13 +29,6 @@ jobs:
       - name: Build frontend
         run: npx nx build responsia-tax-frontend
 
-      - name: Debug - list dist contents
-        run: |
-          echo "=== dist/ tree ==="
-          find dist/ -type f | head -30 || echo "dist/ not found"
-          echo "=== checking nx cache ==="
-          ls -la .nx/cache/ 2>/dev/null | head -5 || echo "no nx cache"
-
       - name: Copy frontend dist into backend static
         run: |
           mkdir -p dist/apps/responsia-tax-backend/public
@@ -60,6 +53,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           images: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        env:
-          AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
