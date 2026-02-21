@@ -159,7 +159,7 @@ export class LlmService {
       temperature: params.temperature ?? 0.3,
     });
 
-    const textBlock = response.content.find((b) => b.type === 'text');
+    const textBlock = response.content.find((b: any) => b.type === 'text');
     if (!textBlock || textBlock.type !== 'text') {
       throw new BadRequestException('Azure Anthropic returned an empty response');
     }
