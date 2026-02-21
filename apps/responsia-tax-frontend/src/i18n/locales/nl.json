@@ -342,6 +342,10 @@
     "title": "Instellingen",
     "saved": "Instellingen opgeslagen",
     "sections": {
+      "openai": {
+        "title": "OpenAI (Directe API)",
+        "description": "OpenAI API-sleutel voor het direct gebruiken van GPT-modellen (zonder Azure)."
+      },
       "azureOpenai": {
         "title": "Azure OpenAI",
         "description": "Azure OpenAI-verbindingsconfiguratie voor GPT-modellen."
@@ -360,6 +364,7 @@
       }
     },
     "fields": {
+      "openaiApiKey": "OpenAI API-sleutel",
       "azureOpenaiEndpoint": "Azure OpenAI Endpoint",
       "azureOpenaiApiKey": "Azure OpenAI API-sleutel",
       "azureOpenaiApiVersion": "Azure OpenAI API-versie",

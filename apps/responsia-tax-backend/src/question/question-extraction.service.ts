@@ -34,7 +34,7 @@ export class QuestionExtractionService {
     const effectiveModel =
       model ||
       (await this.settingService.get('default_llm_model')) ||
-      'azure-openai/gpt-4.1-mini';
+      'openai/gpt-4.1-mini';
 
     this.logger.log(
       `Extracting questions using model=${effectiveModel}, text length=${ocrText.length}`,

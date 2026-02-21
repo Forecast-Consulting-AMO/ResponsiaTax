@@ -101,6 +101,7 @@ export const SettingsPage = () => {
 
         // Refresh models if API keys were saved
         if (
+          sectionKey === 'openai' ||
           sectionKey === 'azure_openai' ||
           sectionKey === 'azure_anthropic'
         ) {
@@ -116,6 +117,19 @@ export const SettingsPage = () => {
   );
 
   const sections: SettingsSection[] = [
+    {
+      sectionKey: 'openai',
+      title: t('settings.sections.openai.title'),
+      description: t('settings.sections.openai.description'),
+      fields: [
+        {
+          key: 'openai_api_key',
+          label: t('settings.fields.openaiApiKey'),
+          type: 'password',
+          placeholder: 'sk-...',
+        },
+      ],
+    },
     {
       sectionKey: 'azure_openai',
       title: t('settings.sections.azureOpenai.title'),

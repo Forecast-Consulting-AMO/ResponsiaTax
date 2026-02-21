@@ -351,6 +351,10 @@
     "title": "Paramètres",
     "saved": "Paramètres enregistrés",
     "sections": {
+      "openai": {
+        "title": "OpenAI (API directe)",
+        "description": "Clé API OpenAI pour utiliser les modèles GPT directement (sans Azure)."
+      },
       "azureOpenai": {
         "title": "Azure OpenAI",
         "description": "Configuration de la connexion Azure OpenAI pour les modèles GPT."
@@ -369,6 +373,7 @@
       }
     },
     "fields": {
+      "openaiApiKey": "Clé API OpenAI",
       "azureOpenaiEndpoint": "Endpoint Azure OpenAI",
       "azureOpenaiApiKey": "Clé API Azure OpenAI",
       "azureOpenaiApiVersion": "Version API Azure OpenAI",

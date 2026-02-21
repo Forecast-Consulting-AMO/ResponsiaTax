@@ -10,15 +10,21 @@ declare const __non_webpack_require__: NodeRequire | undefined;
 const runtimeRequire: NodeRequire = typeof __non_webpack_require__ !== 'undefined' ? __non_webpack_require__ : require;
 
 export const AVAILABLE_MODELS = [
+  // OpenAI (direct API)
+  { id: 'openai/gpt-4.1', name: 'GPT-4.1', provider: 'openai' },
+  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'openai' },
+  { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano', provider: 'openai' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'openai' },
+  { id: 'openai/o3-mini', name: 'o3-mini', provider: 'openai' },
   // Azure OpenAI
-  { id: 'azure-openai/gpt-5.2-chat', name: 'GPT-5.2 Chat', provider: 'azure-openai' },
-  { id: 'azure-openai/gpt-4o', name: 'GPT-4o', provider: 'azure-openai' },
-  { id: 'azure-openai/gpt-4.1', name: 'GPT-4.1', provider: 'azure-openai' },
-  { id: 'azure-openai/gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'azure-openai' },
-  { id: 'azure-openai/gpt-4.1-nano', name: 'GPT-4.1 Nano', provider: 'azure-openai' },
+  { id: 'azure-openai/gpt-5.2-chat', name: 'Azure GPT-5.2 Chat', provider: 'azure-openai' },
+  { id: 'azure-openai/gpt-4o', name: 'Azure GPT-4o', provider: 'azure-openai' },
+  { id: 'azure-openai/gpt-4.1', name: 'Azure GPT-4.1', provider: 'azure-openai' },
+  { id: 'azure-openai/gpt-4.1-mini', name: 'Azure GPT-4.1 Mini', provider: 'azure-openai' },
+  { id: 'azure-openai/gpt-4.1-nano', name: 'Azure GPT-4.1 Nano', provider: 'azure-openai' },
   // Azure Anthropic (via Azure AI Foundry)
-  { id: 'azure-anthropic/claude-sonnet-4-5', name: 'Claude Sonnet 4.5', provider: 'azure-anthropic' },
-  { id: 'azure-anthropic/claude-haiku-3-5', name: 'Claude Haiku 3.5', provider: 'azure-anthropic' },
+  { id: 'azure-anthropic/claude-sonnet-4-5', name: 'Azure Claude Sonnet 4.5', provider: 'azure-anthropic' },
+  { id: 'azure-anthropic/claude-haiku-3-5', name: 'Azure Claude Haiku 3.5', provider: 'azure-anthropic' },
 ];
 
 export interface ChatParams {
@@ -57,13 +63,58 @@ export class LlmService {
       );
     }
 
-    if (modelDef.provider === 'azure-openai') {
+    if (modelDef.provider === 'openai') {
+      return this.chatOpenAI(params);
+    } else if (modelDef.provider === 'azure-openai') {
       return this.chatAzureOpenAI(params);
     } else if (modelDef.provider === 'azure-anthropic') {
       return this.chatAzureAnthropic(params);
     } else {
       throw new BadRequestException(`Unsupported provider: ${modelDef.provider}`);
     }
+  }
+
+  // ---- OpenAI (direct API) ----
+
+  private async chatOpenAI(params: ChatParams): Promise<ChatResponse> {
+    const apiKey = await this.settingService.get('openai_api_key');
+
+    if (!apiKey) {
+      throw new BadRequestException(
+        'OpenAI is not configured. Set openai_api_key in Settings.',
+      );
+    }
+
+    const OpenAI = runtimeRequire('openai').default ?? runtimeRequire('openai').OpenAI;
+
+    const modelName = params.model.replace('openai/', '');
+    const client = new OpenAI({ apiKey });
+
+    this.logger.log(
+      `Calling OpenAI model=${modelName}, messages=${params.messages.length}`,
+    );
+
+    const response = await client.chat.completions.create({
+      model: modelName,
+      messages: params.messages.map((m: any) => ({
+        role: m.role,
+        content: m.content,
+      })),
+      temperature: params.temperature ?? 0.3,
+      max_completion_tokens: params.maxTokens ?? 4096,
+    });
+
+    const choice = response.choices?.[0];
+    if (!choice?.message?.content) {
+      throw new BadRequestException('OpenAI returned an empty response');
+    }
+
+    return {
+      content: choice.message.content,
+      model: params.model,
+      tokensIn: response.usage?.prompt_tokens ?? 0,
+      tokensOut: response.usage?.completion_tokens ?? 0,
+    };
   }
 
   // ---- Azure OpenAI ----

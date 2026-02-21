@@ -351,6 +351,10 @@
     "title": "Settings",
     "saved": "Settings saved",
     "sections": {
+      "openai": {
+        "title": "OpenAI (Direct API)",
+        "description": "OpenAI API key for using GPT models directly (without Azure)."
+      },
       "azureOpenai": {
         "title": "Azure OpenAI",
         "description": "Azure OpenAI connection configuration for GPT models."
@@ -369,6 +373,7 @@
       }
     },
     "fields": {
+      "openaiApiKey": "OpenAI API Key",
       "azureOpenaiEndpoint": "Azure OpenAI Endpoint",
       "azureOpenaiApiKey": "Azure OpenAI API Key",
       "azureOpenaiApiVersion": "Azure OpenAI API Version",
