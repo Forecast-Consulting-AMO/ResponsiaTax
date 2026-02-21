@@ -507,7 +507,7 @@ export const RoundDetailPage = () => {
               questions
                 .sort((a, b) => a.question_number - b.question_number)
                 .map((question) => (
-                  <Accordion key={question.id} sx={{ mb: 1 }}>
+                  <Accordion key={question.id} sx={{ mb: 1, overflow: 'hidden' }}>
                     <AccordionSummary expandIcon={<ExpandMore />}>
                       <Box
                         sx={{
@@ -515,6 +515,7 @@ export const RoundDetailPage = () => {
                           alignItems: 'center',
                           gap: 1,
                           width: '100%',
+                          minWidth: 0,
                           mr: 1,
                         }}
                       >
@@ -523,8 +524,9 @@ export const RoundDetailPage = () => {
                           size="small"
                           color="primary"
                           variant="outlined"
+                          sx={{ flexShrink: 0 }}
                         />
-                        <Typography sx={{ flex: 1 }} noWrap>
+                        <Typography sx={{ flex: 1, minWidth: 0 }} noWrap>
                           {question.question_text}
                         </Typography>
                         <StatusChip status={question.status} type="question" />
