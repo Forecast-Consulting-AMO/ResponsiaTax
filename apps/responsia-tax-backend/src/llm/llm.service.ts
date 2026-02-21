@@ -6,6 +6,7 @@ import { LlmMessage, LlmRole } from './entities/llm-message.entity';
 
 export const AVAILABLE_MODELS = [
   // Azure OpenAI
+  { id: 'azure-openai/gpt-5.2-chat', name: 'GPT-5.2 Chat', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4o', name: 'GPT-4o', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4.1', name: 'GPT-4.1', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'azure-openai' },
@@ -67,7 +68,7 @@ export class LlmService {
     const apiKey = await this.settingService.get('azure_openai_api_key');
     const apiVersion = await this.settingService.get(
       'azure_openai_api_version',
-      '2024-12-01-preview',
+      '2025-04-01-preview',
     );
 
     if (!endpoint || !apiKey) {
