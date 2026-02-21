@@ -4,6 +4,11 @@ import { Repository } from 'typeorm';
 import { SettingService } from '../setting/setting.service';
 import { LlmMessage, LlmRole } from './entities/llm-message.entity';
 
+// Use runtime require to bypass webpack bundling of SDK packages
+declare const __non_webpack_require__: NodeRequire | undefined;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const runtimeRequire: NodeRequire = typeof __non_webpack_require__ !== 'undefined' ? __non_webpack_require__ : require;
+
 export const AVAILABLE_MODELS = [
   // Azure OpenAI
   { id: 'azure-openai/gpt-5.2-chat', name: 'GPT-5.2 Chat', provider: 'azure-openai' },
@@ -77,7 +82,7 @@ export class LlmService {
       );
     }
 
-    const { AzureOpenAI } = await import('openai');
+    const { AzureOpenAI } = runtimeRequire('openai');
 
     const deploymentName = params.model.replace('azure-openai/', '');
 
@@ -127,7 +132,7 @@ export class LlmService {
       );
     }
 
-    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    const Anthropic = runtimeRequire('@anthropic-ai/sdk').default ?? runtimeRequire('@anthropic-ai/sdk');
 
     const modelName = params.model.replace('azure-anthropic/', '');
 

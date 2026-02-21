@@ -1,5 +1,11 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import * as fs from 'fs';
 import { SettingService } from '../setting/setting.service';
+
+// Use runtime require to bypass webpack bundling of SDK packages
+declare const __non_webpack_require__: NodeRequire | undefined;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const runtimeRequire: NodeRequire = typeof __non_webpack_require__ !== 'undefined' ? __non_webpack_require__ : require;
 
 export interface OcrResult {
   fullText: string;
@@ -22,9 +28,7 @@ export class OcrService {
       );
     }
 
-    const { DocumentAnalysisClient, AzureKeyCredential } = await import(
-      '@azure/ai-form-recognizer'
-    );
+    const { DocumentAnalysisClient, AzureKeyCredential } = runtimeRequire('@azure/ai-form-recognizer');
 
     const client = new DocumentAnalysisClient(
       endpoint,
@@ -34,7 +38,6 @@ export class OcrService {
     this.logger.log(`Starting OCR for file: ${filePath}`);
 
     // Read file as buffer
-    const fs = await import('fs');
     const fileBuffer = fs.readFileSync(filePath);
 
     // Use the prebuilt-read model
