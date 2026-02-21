@@ -107,7 +107,7 @@ export class LlmService {
         content: m.content,
       })),
       temperature: params.temperature ?? 0.3,
-      max_tokens: params.maxTokens ?? 4096,
+      max_completion_tokens: params.maxTokens ?? 4096,
     });
 
     const choice = response.choices?.[0];
