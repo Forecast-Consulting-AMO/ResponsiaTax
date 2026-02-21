@@ -194,7 +194,10 @@
       "empty": "No questions for this round.",
       "emptyHint": "Upload a document of type \"Information Request\" then click \"Extract questions\".",
       "response": "Response",
-      "answer": "Answer"
+      "answer": "Answer",
+      "answered": "answered",
+      "reviewedCount": "reviewed",
+      "noResponse": "No response yet"
     },
     "documents": {
       "title": "Documents",

@@ -194,7 +194,10 @@
       "empty": "Aucune question pour ce tour.",
       "emptyHint": "Téléversez un document de type \"Demande de renseignements\" puis cliquez sur \"Extraire les questions\".",
       "response": "Réponse",
-      "answer": "Répondre"
+      "answer": "Répondre",
+      "answered": "répondue(s)",
+      "reviewedCount": "vérifiée(s)",
+      "noResponse": "Pas encore de réponse"
     },
     "documents": {
       "title": "Documents",

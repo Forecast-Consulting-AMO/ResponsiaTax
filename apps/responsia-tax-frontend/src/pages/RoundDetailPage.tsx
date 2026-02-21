@@ -26,9 +26,6 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Chip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Alert,
   LinearProgress,
   Dialog,
@@ -41,11 +38,12 @@ import {
   Delete,
   Description,
   Download,
-  ExpandMore,
   AutoAwesome,
   Refresh,
   CheckCircle,
   Warning,
+  ChevronRight,
+  QuestionAnswer,
 } from '@mui/icons-material';
 import { roundsApi } from '../api/rounds';
 import { questionsApi } from '../api/questions';
@@ -456,6 +454,7 @@ export const RoundDetailPage = () => {
         {/* Left column - Questions */}
         <Grid size={{ xs: 12, md: 7 }}>
           <Paper sx={{ p: 3 }}>
+            {/* Header */}
             <Box
               sx={{
                 display: 'flex',
@@ -467,36 +466,67 @@ export const RoundDetailPage = () => {
               <Typography variant="h6" fontWeight={600}>
                 {t('roundDetail.questions.title')} ({questions.length})
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={
-                    extracting ? (
-                      <CircularProgress size={16} />
-                    ) : (
-                      <AutoAwesome />
-                    )
-                  }
-                  onClick={handleExtractQuestions}
-                  disabled={extracting}
-                >
-                  {t('roundDetail.questions.extract')}
-                </Button>
-              </Box>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={
+                  extracting ? (
+                    <CircularProgress size={16} />
+                  ) : (
+                    <AutoAwesome />
+                  )
+                }
+                onClick={handleExtractQuestions}
+                disabled={extracting}
+              >
+                {t('roundDetail.questions.extract')}
+              </Button>
             </Box>
 
             {extracting && <LinearProgress sx={{ mb: 2 }} />}
 
+            {/* Progress bar */}
+            {questions.length > 0 && (() => {
+              const answered = questions.filter((q) => q.response_text).length;
+              const reviewed = questions.filter((q) => q.status === 'reviewed' || q.status === 'approved').length;
+              const pct = Math.round((answered / questions.length) * 100);
+              return (
+                <Box sx={{ mb: 2.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      {answered}/{questions.length} {t('roundDetail.questions.answered')}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {reviewed} {t('roundDetail.questions.reviewedCount')}
+                    </Typography>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={pct}
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      bgcolor: 'grey.100',
+                      '& .MuiLinearProgress-bar': {
+                        borderRadius: 3,
+                        bgcolor: pct === 100 ? 'success.main' : 'primary.main',
+                      },
+                    }}
+                  />
+                </Box>
+              );
+            })()}
+
             {questions.length === 0 ? (
               <Box
                 sx={{
-                  py: 4,
+                  py: 6,
                   textAlign: 'center',
                   color: 'text.secondary',
                 }}
               >
-                <Typography variant="body2">
+                <QuestionAnswer sx={{ fontSize: 48, mb: 1.5, opacity: 0.15 }} />
+                <Typography variant="body2" sx={{ mb: 0.5 }}>
                   {t('roundDetail.questions.empty')}
                 </Typography>
                 <Typography variant="caption">
@@ -504,77 +534,101 @@ export const RoundDetailPage = () => {
                 </Typography>
               </Box>
             ) : (
-              questions
-                .sort((a, b) => a.question_number - b.question_number)
-                .map((question) => (
-                  <Accordion key={question.id} sx={{ mb: 1, overflow: 'hidden' }}>
-                    <AccordionSummary expandIcon={<ExpandMore />}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {questions
+                  .sort((a, b) => a.question_number - b.question_number)
+                  .map((question) => (
+                    <Box
+                      key={question.id}
+                      onClick={() => navigate(`/questions/${question.id}`)}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 1.5,
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        '&:hover': {
+                          borderColor: 'primary.main',
+                          bgcolor: 'primary.50',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                        },
+                      }}
+                    >
+                      {/* Question number */}
+                      <Box
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          bgcolor: question.response_text ? 'primary.main' : 'grey.200',
+                          color: question.response_text ? 'primary.contrastText' : 'text.secondary',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          fontWeight: 700,
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        {question.question_number}
+                      </Box>
+
+                      {/* Content */}
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 500,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            lineHeight: 1.5,
+                            mb: 0.5,
+                          }}
+                        >
+                          {question.question_text}
+                        </Typography>
+                        {question.response_text ? (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: 1,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {question.response_text}
+                          </Typography>
+                        ) : (
+                          <Typography variant="caption" color="text.disabled" fontStyle="italic">
+                            {t('roundDetail.questions.noResponse')}
+                          </Typography>
+                        )}
+                      </Box>
+
+                      {/* Status + arrow */}
                       <Box
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
                           gap: 1,
-                          width: '100%',
-                          minWidth: 0,
-                          mr: 1,
+                          flexShrink: 0,
+                          alignSelf: 'center',
                         }}
                       >
-                        <Chip
-                          label={`Q${question.question_number}`}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                          sx={{ flexShrink: 0 }}
-                        />
-                        <Typography sx={{ flex: 1, minWidth: 0 }} noWrap>
-                          {question.question_text}
-                        </Typography>
                         <StatusChip status={question.status} type="question" />
+                        <ChevronRight sx={{ color: 'text.disabled', fontSize: 20 }} />
                       </Box>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          bgcolor: 'grey.50',
-                          p: 2,
-                          borderRadius: 1,
-                          fontStyle: 'italic',
-                          mb: 2,
-                          whiteSpace: 'pre-wrap',
-                        }}
-                      >
-                        {question.question_text}
-                      </Typography>
-
-                      {question.response_text && (
-                        <Box sx={{ mb: 2 }}>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            fontWeight={600}
-                          >
-                            {t('roundDetail.questions.response')}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{ mt: 0.5, whiteSpace: 'pre-wrap' }}
-                          >
-                            {question.response_text}
-                          </Typography>
-                        </Box>
-                      )}
-
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() => navigate(`/questions/${question.id}`)}
-                      >
-                        {t('roundDetail.questions.answer')}
-                      </Button>
-                    </AccordionDetails>
-                  </Accordion>
-                ))
+                    </Box>
+                  ))}
+              </Box>
             )}
           </Paper>
 

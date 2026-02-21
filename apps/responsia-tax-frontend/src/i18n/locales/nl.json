@@ -184,7 +184,10 @@
       "empty": "Geen vragen voor deze ronde.",
       "emptyHint": "Upload een document van het type \"Vraag om inlichtingen\" en klik op \"Vragen extraheren\".",
       "response": "Antwoord",
-      "answer": "Beantwoorden"
+      "answer": "Beantwoorden",
+      "answered": "beantwoord",
+      "reviewedCount": "gecontroleerd",
+      "noResponse": "Nog geen antwoord"
     },
     "documents": {
       "title": "Documenten",
