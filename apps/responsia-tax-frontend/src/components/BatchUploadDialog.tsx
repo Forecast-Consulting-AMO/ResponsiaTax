@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -25,52 +25,55 @@ const DOC_TYPES: DocType[] = ['question_dr', 'support', 'response_draft', 'other
 
 /**
  * Auto-detect document type based on filename patterns.
+ * Uses NFD normalization to strip accents for robust matching.
  */
 function detectDocType(filename: string): DocType {
   const lower = filename.toLowerCase();
+  // Strip accents: "réponse" → "reponse", "pièce" → "piece"
+  const ascii = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
   // Information request / demand for info patterns
   if (
-    /demande[_\s-]*(de[_\s-]*)?renseignement/i.test(lower) ||
-    /\bdr\b/.test(lower) ||
-    /vraag[_\s-]*(om[_\s-]*)?inlichtingen/i.test(lower) ||
-    /information[_\s-]*request/i.test(lower) ||
-    /avis[_\s-]*(de[_\s-]*)?rectification/i.test(lower) ||
-    /notification/i.test(lower)
+    /demande[\s_-]*(de[\s_-]*)?renseignement/.test(ascii) ||
+    /(^|[\s_\-.])dr([\s_\-.]|$)/.test(lower) ||
+    /vraag[\s_-]*(om[\s_-]*)?inlichtingen/.test(ascii) ||
+    /information[\s_-]*request/.test(lower) ||
+    /avis[\s_-]*(de[\s_-]*)?rectification/.test(ascii) ||
+    /notification/.test(lower)
   ) {
     return 'question_dr';
   }
 
   // Response / reply patterns
   if (
-    /\br[ée]ponse\b/i.test(lower) ||
-    /\breply\b/i.test(lower) ||
-    /\bantwoord\b/i.test(lower) ||
-    /\bresponse\b/i.test(lower) ||
-    /\bbrouillon\b/i.test(lower) ||
-    /\bdraft\b/i.test(lower) ||
-    /\bconcept\b/i.test(lower)
+    /reponse/.test(ascii) ||
+    /reply/.test(lower) ||
+    /antwoord/.test(lower) ||
+    /response/.test(lower) ||
+    /brouillon/.test(lower) ||
+    /draft/.test(lower) ||
+    /concept/.test(lower)
   ) {
     return 'response_draft';
   }
 
   // Supporting document patterns
   if (
-    /\bannexe\b/i.test(lower) ||
-    /\bbijlage\b/i.test(lower) ||
-    /\battachment\b/i.test(lower) ||
-    /pi[èe]ce[_\s-]*justificative/i.test(lower) ||
-    /\bbewijsstuk\b/i.test(lower) ||
-    /\bsupport\b/i.test(lower) ||
-    /\bjustificati/i.test(lower) ||
-    /\bfactur/i.test(lower) ||
-    /\binvoice\b/i.test(lower) ||
-    /\bcontrat\b/i.test(lower) ||
-    /\bcontract\b/i.test(lower) ||
-    /\bbilan\b/i.test(lower) ||
-    /\bbalans\b/i.test(lower) ||
-    /\bcomptes?\b/i.test(lower) ||
-    /\brekening/i.test(lower)
+    /annexe/.test(lower) ||
+    /bijlage/.test(lower) ||
+    /attachment/.test(lower) ||
+    /piece[\s_-]*justificative/.test(ascii) ||
+    /bewijsstuk/.test(lower) ||
+    /support/.test(lower) ||
+    /justificati/.test(lower) ||
+    /factur/.test(lower) ||
+    /invoice/.test(lower) ||
+    /contrat/.test(lower) ||
+    /contract/.test(lower) ||
+    /bilan/.test(lower) ||
+    /balans/.test(lower) ||
+    /comptes?/.test(lower) ||
+    /rekening/.test(lower)
   ) {
     return 'support';
   }
@@ -100,22 +103,17 @@ export const BatchUploadDialog = ({
 }: BatchUploadDialogProps) => {
   const { t } = useTranslation();
 
-  const [items, setItems] = useState<BatchUploadItem[]>(() =>
-    files.map((file) => ({
-      file,
-      docType: detectDocType(file.name),
-    })),
-  );
+  const [items, setItems] = useState<BatchUploadItem[]>([]);
 
-  // Sync items when files change
-  if (files.length > 0 && items.length !== files.length) {
+  // Rebuild items whenever the files prop changes
+  useEffect(() => {
     setItems(
       files.map((file) => ({
         file,
         docType: detectDocType(file.name),
       })),
     );
-  }
+  }, [files]);
 
   const handleTypeChange = useCallback(
     (index: number, docType: DocType) => {
