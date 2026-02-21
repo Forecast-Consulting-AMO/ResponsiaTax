@@ -7,10 +7,11 @@ import { SettingModule } from '../setting/setting.module';
 import { DocumentModule } from '../document/document.module';
 import { Question } from '../question/entities/question.entity';
 import { Dossier } from '../dossier/entities/dossier.entity';
+import { Round } from '../round/entities/round.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([LlmMessage, Question, Dossier]),
+    TypeOrmModule.forFeature([LlmMessage, Question, Dossier, Round]),
     SettingModule,
     DocumentModule,
   ],

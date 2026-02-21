@@ -768,15 +768,24 @@ export const QuestionDetailPage = () => {
                     </Typography>
                   )}
                   {msg.role === 'assistant' && (
-                    <Tooltip title={t('questionDetail.chat.copyToResponse')}>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleCopyToResponse(msg.content)}
-                        sx={{ ml: 0.5 }}
-                      >
-                        <ContentCopy sx={{ fontSize: 14 }} />
-                      </IconButton>
-                    </Tooltip>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="primary"
+                      startIcon={<ContentCopy sx={{ fontSize: 14 }} />}
+                      onClick={() => handleCopyToResponse(msg.content)}
+                      sx={{
+                        ml: 'auto',
+                        textTransform: 'none',
+                        fontSize: '0.7rem',
+                        py: 0.25,
+                        px: 1,
+                        minHeight: 0,
+                        borderRadius: 1,
+                      }}
+                    >
+                      {t('questionDetail.chat.useThisResponse')}
+                    </Button>
                   )}
                 </Box>
               </Box>

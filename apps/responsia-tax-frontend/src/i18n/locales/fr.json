@@ -285,6 +285,7 @@
       "autoApply": "Appliquer automatiquement la réponse de l'IA à l'éditeur",
       "includeDocuments": "Inclure les documents (RAG)",
       "copyToResponse": "Copier dans la réponse",
+      "useThisResponse": "Utiliser cette réponse",
       "quickDraft": "Rédiger une réponse",
       "quickImprove": "Améliorer la réponse",
       "quickSummarize": "Résumer",
@@ -310,6 +311,14 @@
       "support": "Pièce justificative",
       "response_draft": "Brouillon de réponse",
       "other": "Autre"
+    },
+    "batchUpload": {
+      "title": "Téléverser des documents",
+      "description": "Les types de documents ont été détectés automatiquement à partir des noms de fichiers. Vous pouvez les ajuster avant le téléversement.",
+      "filename": "Nom du fichier",
+      "size": "Taille",
+      "type": "Type",
+      "noFiles": "Aucun fichier à téléverser"
     },
     "ocr": {
       "title": "Texte OCR",

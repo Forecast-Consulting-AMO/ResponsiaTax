@@ -285,6 +285,7 @@
       "autoApply": "Auto-apply AI response to the editor",
       "includeDocuments": "Include documents (RAG)",
       "copyToResponse": "Copy to response",
+      "useThisResponse": "Use this response",
       "quickDraft": "Draft a response",
       "quickImprove": "Improve response",
       "quickSummarize": "Summarize",
@@ -310,6 +311,14 @@
       "support": "Supporting Document",
       "response_draft": "Response Draft",
       "other": "Other"
+    },
+    "batchUpload": {
+      "title": "Upload Documents",
+      "description": "Document types have been auto-detected from filenames. You can adjust them before uploading.",
+      "filename": "Filename",
+      "size": "Size",
+      "type": "Type",
+      "noFiles": "No files to upload"
     },
     "ocr": {
       "title": "OCR Text",

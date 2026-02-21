@@ -40,6 +40,8 @@ import { roundsApi } from '../api/rounds';
 import { documentsApi } from '../api/documents';
 import { StatusChip } from '../components/StatusChip';
 import { FileUpload } from '../components/FileUpload';
+import { BatchUploadDialog } from '../components/BatchUploadDialog';
+import type { BatchUploadItem } from '../components/BatchUploadDialog';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import type {
   Dossier,
@@ -81,6 +83,7 @@ export const DossierDetailPage = () => {
   const [addingRound, setAddingRound] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   const fetchDossier = useCallback(async () => {
     if (!id) return;
@@ -184,14 +187,25 @@ export const DossierDetailPage = () => {
   }, [id, rounds, enqueueSnackbar, t, fetchRounds]);
 
   const handleFilesSelected = useCallback(
-    async (files: File[]) => {
+    (files: File[]) => {
+      setPendingFiles(files);
+    },
+    [],
+  );
+
+  const handleBatchUploadConfirm = useCallback(
+    async (items: BatchUploadItem[]) => {
       if (!id) return;
       try {
         setUploading(true);
-        await documentsApi.upload(id, files, 'other' as DocType);
+        await documentsApi.uploadBatch(
+          id,
+          items.map((i) => ({ file: i.file, docType: i.docType })),
+        );
         enqueueSnackbar(t('dossierDetail.documentsUploaded'), {
           variant: 'success',
         });
+        setPendingFiles([]);
         fetchDocuments();
       } catch {
         enqueueSnackbar(t('dossierDetail.errors.uploadFailed'), {
@@ -662,11 +676,6 @@ export const DossierDetailPage = () => {
                 multiple
                 label={t('dossierDetail.documents.upload')}
               />
-              {uploading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                  <CircularProgress size={20} />
-                </Box>
-              )}
             </Box>
 
             <Divider sx={{ mb: 2 }} />
@@ -744,6 +753,15 @@ export const DossierDetailPage = () => {
         message={t('dossierDetail.documents.deleteMessage')}
         onConfirm={handleDeleteDocument}
         onCancel={() => setDeleteDocId(null)}
+      />
+
+      {/* Batch upload dialog with auto-labeling */}
+      <BatchUploadDialog
+        open={pendingFiles.length > 0}
+        files={pendingFiles}
+        onClose={() => setPendingFiles([])}
+        onConfirm={handleBatchUploadConfirm}
+        uploading={uploading}
       />
     </Container>
   );

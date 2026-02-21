@@ -23,6 +23,7 @@ import { RagService } from '../document/rag.service';
 import { SettingService } from '../setting/setting.service';
 import { Question } from '../question/entities/question.entity';
 import { Dossier } from '../dossier/entities/dossier.entity';
+import { Round } from '../round/entities/round.entity';
 
 @ApiTags('LLM')
 @Controller({ version: '1' })
@@ -38,6 +39,8 @@ export class LlmController {
     private readonly questionRepo: Repository<Question>,
     @InjectRepository(Dossier)
     private readonly dossierRepo: Repository<Dossier>,
+    @InjectRepository(Round)
+    private readonly roundRepo: Repository<Round>,
   ) {}
 
   @Get('llm/models')
@@ -260,12 +263,45 @@ export class LlmController {
       parts.push(basePrompt.trim());
     }
 
-    // 2. Question context
+    // 2. Previous rounds context (inherit Q&A from earlier rounds)
+    if (dossierId && question.round) {
+      const currentRoundNumber = question.round.round_number;
+      if (currentRoundNumber > 1) {
+        const previousRounds = await this.roundRepo.find({
+          where: { dossier_id: dossierId },
+          relations: ['questions'],
+          order: { round_number: 'ASC' },
+        });
+
+        const prevRoundQA = previousRounds
+          .filter((r) => r.round_number < currentRoundNumber)
+          .flatMap((r) =>
+            (r.questions || [])
+              .filter((q) => q.response_text)
+              .sort((a, b) => a.question_number - b.question_number)
+              .map(
+                (q) =>
+                  `[Tour ${r.round_number} — Q${q.question_number}]\nQuestion: ${q.question_text}\nRéponse: ${q.response_text}`,
+              ),
+          );
+
+        if (prevRoundQA.length > 0) {
+          parts.push(
+            `HISTORIQUE DES TOURS PRÉCÉDENTS (questions et réponses déjà traitées):\n\n${prevRoundQA.join('\n\n---\n\n')}`,
+          );
+          this.logger.log(
+            `Injected ${prevRoundQA.length} previous Q&A(s) for round ${currentRoundNumber}`,
+          );
+        }
+      }
+    }
+
+    // 3. Current question context
     parts.push(
       `---\nQUESTION DU CONTRÔLEUR (Question ${question.question_number ?? ''}):\n${question.question_text}`,
     );
 
-    // 3. RAG document excerpts (if enabled, default: true)
+    // 4. RAG document excerpts (if enabled, default: true)
     if (dto.includeDocuments !== false && dossierId) {
       const ragResults = await this.ragService.search(
         question.question_text,

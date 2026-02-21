@@ -54,6 +54,8 @@ import { exportsApi } from '../api/exports';
 import { llmApi } from '../api/llm';
 import { StatusChip } from '../components/StatusChip';
 import { FileUpload } from '../components/FileUpload';
+import { BatchUploadDialog } from '../components/BatchUploadDialog';
+import type { BatchUploadItem } from '../components/BatchUploadDialog';
 import type {
   Round,
   RoundStatus,
@@ -84,8 +86,8 @@ export const RoundDetailPage = () => {
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [ocrLoading, setOcrLoading] = useState<string | null>(null);
-  const [uploadDocType, setUploadDocType] = useState<string>('question_dr');
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [draftingAll, setDraftingAll] = useState(false);
   const [draftProgress, setDraftProgress] = useState({ current: 0, total: 0 });
   const draftAbortRef = useRef(false);
@@ -284,14 +286,26 @@ export const RoundDetailPage = () => {
   }, [id, enqueueSnackbar, t]);
 
   const handleFilesSelected = useCallback(
-    async (files: File[]) => {
+    (files: File[]) => {
+      setPendingFiles(files);
+    },
+    [],
+  );
+
+  const handleBatchUploadConfirm = useCallback(
+    async (items: BatchUploadItem[]) => {
       if (!round?.dossier_id) return;
       try {
         setUploading(true);
-        await documentsApi.upload(round.dossier_id, files, uploadDocType as any, id);
+        await documentsApi.uploadBatch(
+          round.dossier_id,
+          items.map((i) => ({ file: i.file, docType: i.docType })),
+          id,
+        );
         enqueueSnackbar(t('roundDetail.documentsUploaded'), {
           variant: 'success',
         });
+        setPendingFiles([]);
         fetchDocuments();
       } catch {
         enqueueSnackbar(t('roundDetail.errors.uploadFailed'), {
@@ -774,30 +788,12 @@ export const RoundDetailPage = () => {
             </Typography>
 
             <Box sx={{ mb: 2 }}>
-              <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
-                <InputLabel>{t('document.upload')}</InputLabel>
-                <Select
-                  value={uploadDocType}
-                  onChange={(e) => setUploadDocType(e.target.value)}
-                  label={t('document.upload')}
-                >
-                  <MenuItem value="question_dr">{t('document.types.question_dr')}</MenuItem>
-                  <MenuItem value="support">{t('document.types.support')}</MenuItem>
-                  <MenuItem value="response_draft">{t('document.types.response_draft')}</MenuItem>
-                  <MenuItem value="other">{t('document.types.other')}</MenuItem>
-                </Select>
-              </FormControl>
               <FileUpload
                 onFilesSelected={handleFilesSelected}
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.png"
                 multiple
                 label={t('roundDetail.documents.upload')}
               />
-              {uploading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                  <CircularProgress size={20} />
-                </Box>
-              )}
             </Box>
 
             <Divider sx={{ mb: 2 }} />
@@ -921,6 +917,15 @@ export const RoundDetailPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Batch upload dialog with auto-labeling */}
+      <BatchUploadDialog
+        open={pendingFiles.length > 0}
+        files={pendingFiles}
+        onClose={() => setPendingFiles([])}
+        onConfirm={handleBatchUploadConfirm}
+        uploading={uploading}
+      />
     </Container>
   );
 };

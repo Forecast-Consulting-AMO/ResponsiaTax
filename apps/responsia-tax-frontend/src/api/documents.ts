@@ -40,6 +40,31 @@ export const documentsApi = {
     return results;
   },
 
+  uploadBatch: async (
+    dossierId: string,
+    items: Array<{ file: File; docType: DocType }>,
+    roundId?: string,
+  ): Promise<Document[]> => {
+    const results: Document[] = [];
+    for (const { file, docType } of items) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('doc_type', docType);
+      if (roundId) {
+        formData.append('round_id', roundId);
+      }
+      const doc = await AXIOS_INSTANCE.post<Document>(
+        `${BASE}/${dossierId}/documents`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
+      ).then((r) => r.data);
+      results.push(doc);
+    }
+    return results;
+  },
+
   remove: (id: string) => AXIOS_INSTANCE.delete(`/api/v1/documents/${id}`),
 
   download: (id: string) =>

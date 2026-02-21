@@ -275,6 +275,7 @@
       "autoApply": "AI-antwoord automatisch toepassen op de editor",
       "includeDocuments": "Documenten opnemen (RAG)",
       "copyToResponse": "Kopiëren naar antwoord",
+      "useThisResponse": "Dit antwoord gebruiken",
       "quickDraft": "Antwoord opstellen",
       "quickImprove": "Antwoord verbeteren",
       "quickSummarize": "Samenvatten",
@@ -300,6 +301,14 @@
       "support": "Bewijsstuk",
       "response_draft": "Antwoordconcept",
       "other": "Overig"
+    },
+    "batchUpload": {
+      "title": "Documenten uploaden",
+      "description": "Documenttypes zijn automatisch gedetecteerd op basis van bestandsnamen. U kunt ze aanpassen voor het uploaden.",
+      "filename": "Bestandsnaam",
+      "size": "Grootte",
+      "type": "Type",
+      "noFiles": "Geen bestanden om te uploaden"
     },
     "ocr": {
       "title": "OCR-tekst",
