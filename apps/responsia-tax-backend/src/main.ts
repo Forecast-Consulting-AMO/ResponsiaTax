@@ -50,7 +50,7 @@ async function bootstrap() {
     // SPA fallback: serve index.html for non-API routes (no-cache so new deploys take effect)
     const expressApp = app.getHttpAdapter().getInstance();
     const indexPath = join(publicDir, 'index.html');
-    expressApp.get(/^(?!\/api\/).*/, (_req: any, res: any) => {
+    expressApp.get(/^(?!\/api\/|\/uploads\/).*/, (_req: any, res: any) => {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
@@ -58,8 +58,8 @@ async function bootstrap() {
     });
   }
 
-  // Ensure uploads directory exists
-  const uploadsDir = join(process.cwd(), 'uploads');
+  // Ensure uploads directory exists (UPLOAD_DIR for Azure persistent /home mount)
+  const uploadsDir = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
   if (!existsSync(uploadsDir)) {
     require('fs').mkdirSync(uploadsDir, { recursive: true });
   }

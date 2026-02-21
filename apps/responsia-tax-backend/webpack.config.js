@@ -7,6 +7,11 @@ module.exports = (_, argv) => {
     output: {
       path: join(__dirname, '../../dist/apps/responsia-tax-backend'),
     },
+    externals: {
+      'openai': 'commonjs openai',
+      '@anthropic-ai/sdk': 'commonjs @anthropic-ai/sdk',
+      '@azure/ai-form-recognizer': 'commonjs @azure/ai-form-recognizer',
+    },
     plugins: [
       new NxAppWebpackPlugin({
         target: 'node',

@@ -1,16 +1,14 @@
 FROM node:lts-alpine
 
-RUN addgroup --system app && adduser --system --ingroup app app
-
 WORKDIR /app
 
 COPY dist/apps/responsia-tax-backend/package*.json ./
-RUN npm install --omit=dev && npm install pg
+RUN npm install --omit=dev && npm install pg openai @anthropic-ai/sdk @azure/ai-form-recognizer
 
 COPY dist/apps/responsia-tax-backend/ .
 
-RUN chown -R app:app /app
-USER app
+# Use Azure persistent /home mount for uploaded files
+ENV UPLOAD_DIR=/home/uploads
 
 EXPOSE 3000
 CMD ["node", "main.js"]
