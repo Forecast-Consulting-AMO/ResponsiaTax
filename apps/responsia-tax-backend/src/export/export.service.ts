@@ -1,43 +1,38 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Round } from '../round/entities/round.entity';
+import { Dossier } from '../dossier/entities/dossier.entity';
+import { Question } from '../question/entities/question.entity';
 
 @Injectable()
 export class ExportService {
   private readonly logger = new Logger(ExportService.name);
 
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Round)
+    private readonly roundRepo: Repository<Round>,
+    @InjectRepository(Dossier)
+    private readonly dossierRepo: Repository<Dossier>,
+    @InjectRepository(Question)
+    private readonly questionRepo: Repository<Question>,
+  ) {}
 
   async exportRound(roundId: string): Promise<Buffer> {
     // Load the round
-    const roundRows = await this.dataSource.query(
-      `SELECT r.id, r.round_number, r.received_date, r.deadline, r.dossier_id
-       FROM rounds r
-       WHERE r.id = $1`,
-      [roundId],
-    );
-
-    if (!roundRows || roundRows.length === 0) {
+    const round = await this.roundRepo.findOne({ where: { id: roundId } });
+    if (!round) {
       throw new NotFoundException(`Round ${roundId} not found`);
     }
-    const round = roundRows[0];
 
     // Load the dossier for header info
-    const dossierRows = await this.dataSource.query(
-      `SELECT d.id, d.company_name, d.reference, d.tax_year
-       FROM dossiers d
-       WHERE d.id = $1`,
-      [round.dossier_id],
-    );
-    const dossier = dossierRows?.[0] ?? {};
+    const dossier = await this.dossierRepo.findOne({ where: { id: round.dossier_id } }) ?? {} as Partial<Dossier>;
 
     // Load questions ordered by question_number
-    const questions = await this.dataSource.query(
-      `SELECT q.id, q.question_number, q.question_text, q.response_text, q.status
-       FROM questions q
-       WHERE q.round_id = $1
-       ORDER BY q.question_number ASC`,
-      [roundId],
-    );
+    const questions = await this.questionRepo.find({
+      where: { round_id: roundId },
+      order: { question_number: 'ASC' },
+    });
 
     this.logger.log(
       `Exporting round ${roundId}: ${questions.length} questions`,

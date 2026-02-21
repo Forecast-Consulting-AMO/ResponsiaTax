@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
@@ -44,11 +44,14 @@ import {
   Warning,
   ChevronRight,
   QuestionAnswer,
+  PlayArrow,
+  Stop,
 } from '@mui/icons-material';
 import { roundsApi } from '../api/rounds';
 import { questionsApi } from '../api/questions';
 import { documentsApi } from '../api/documents';
 import { exportsApi } from '../api/exports';
+import { llmApi } from '../api/llm';
 import { StatusChip } from '../components/StatusChip';
 import { FileUpload } from '../components/FileUpload';
 import type {
@@ -83,6 +86,9 @@ export const RoundDetailPage = () => {
   const [ocrLoading, setOcrLoading] = useState<string | null>(null);
   const [uploadDocType, setUploadDocType] = useState<string>('question_dr');
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
+  const [draftingAll, setDraftingAll] = useState(false);
+  const [draftProgress, setDraftProgress] = useState({ current: 0, total: 0 });
+  const draftAbortRef = useRef(false);
 
   const [editReceivedDate, setEditReceivedDate] = useState('');
   const [editDeadline, setEditDeadline] = useState('');
@@ -200,6 +206,61 @@ export const RoundDetailPage = () => {
       setExtracting(false);
     }
   }, [round, documents, enqueueSnackbar, t, fetchQuestions]);
+
+  const handleDraftAll = useCallback(async () => {
+    const unanswered = questions
+      .filter((q) => !q.response_text)
+      .sort((a, b) => a.question_number - b.question_number);
+
+    if (unanswered.length === 0) {
+      enqueueSnackbar(t('roundDetail.questions.allAnswered'), { variant: 'info' });
+      return;
+    }
+
+    try {
+      setDraftingAll(true);
+      draftAbortRef.current = false;
+      setDraftProgress({ current: 0, total: unanswered.length });
+
+      const models = await llmApi.getModels();
+      const defaultModel = models[0]?.id;
+      if (!defaultModel) {
+        enqueueSnackbar(t('roundDetail.errors.noModels'), { variant: 'error' });
+        return;
+      }
+
+      for (let i = 0; i < unanswered.length; i++) {
+        if (draftAbortRef.current) break;
+        setDraftProgress({ current: i + 1, total: unanswered.length });
+
+        await llmApi.chat(unanswered[i].id, {
+          message: t('questionDetail.chat.quickDraft'),
+          model: defaultModel,
+          autoApplyToResponse: true,
+          includeDocuments: true,
+        });
+      }
+
+      fetchQuestions();
+      if (!draftAbortRef.current) {
+        enqueueSnackbar(
+          t('roundDetail.questions.draftAllComplete', { count: unanswered.length }),
+          { variant: 'success' },
+        );
+      } else {
+        enqueueSnackbar(t('roundDetail.questions.draftAllCancelled'), { variant: 'warning' });
+      }
+    } catch {
+      enqueueSnackbar(t('roundDetail.errors.draftAllFailed'), { variant: 'error' });
+    } finally {
+      setDraftingAll(false);
+      setDraftProgress({ current: 0, total: 0 });
+    }
+  }, [questions, enqueueSnackbar, t, fetchQuestions]);
+
+  const handleCancelDraftAll = useCallback(() => {
+    draftAbortRef.current = true;
+  }, []);
 
   const handleExport = useCallback(async () => {
     if (!id) return;
@@ -466,24 +527,66 @@ export const RoundDetailPage = () => {
               <Typography variant="h6" fontWeight={600}>
                 {t('roundDetail.questions.title')} ({questions.length})
               </Typography>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={
-                  extracting ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <AutoAwesome />
-                  )
-                }
-                onClick={handleExtractQuestions}
-                disabled={extracting}
-              >
-                {t('roundDetail.questions.extract')}
-              </Button>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {draftingAll ? (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    color="warning"
+                    startIcon={<Stop />}
+                    onClick={handleCancelDraftAll}
+                  >
+                    {t('roundDetail.questions.cancelDraft')}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<PlayArrow />}
+                    onClick={handleDraftAll}
+                    disabled={extracting || questions.filter((q) => !q.response_text).length === 0}
+                  >
+                    {t('roundDetail.questions.draftAll')}
+                  </Button>
+                )}
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={
+                    extracting ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <AutoAwesome />
+                    )
+                  }
+                  onClick={handleExtractQuestions}
+                  disabled={extracting || draftingAll}
+                >
+                  {t('roundDetail.questions.extract')}
+                </Button>
+              </Box>
             </Box>
 
             {extracting && <LinearProgress sx={{ mb: 2 }} />}
+
+            {draftingAll && (
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('roundDetail.questions.draftingProgress', {
+                      current: draftProgress.current,
+                      total: draftProgress.total,
+                    })}
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={draftProgress.total > 0 ? (draftProgress.current / draftProgress.total) * 100 : 0}
+                  color="secondary"
+                  sx={{ height: 6, borderRadius: 3 }}
+                />
+              </Box>
+            )}
 
             {/* Progress bar */}
             {questions.length > 0 && (() => {

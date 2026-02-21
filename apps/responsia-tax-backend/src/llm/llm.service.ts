@@ -223,6 +223,221 @@ export class LlmService {
     };
   }
 
+  // ---- Streaming variants ----
+
+  async *chatStream(
+    params: ChatParams,
+  ): AsyncGenerator<{
+    type: 'delta' | 'done';
+    content: string;
+    tokensIn?: number;
+    tokensOut?: number;
+  }> {
+    const modelDef = AVAILABLE_MODELS.find((m) => m.id === params.model);
+    if (!modelDef) {
+      throw new BadRequestException(
+        `Unknown model: ${params.model}. Available: ${AVAILABLE_MODELS.map((m) => m.id).join(', ')}`,
+      );
+    }
+
+    if (modelDef.provider === 'openai') {
+      yield* this.chatStreamOpenAI(params);
+    } else if (modelDef.provider === 'anthropic') {
+      yield* this.chatStreamAnthropic(params);
+    } else if (modelDef.provider === 'azure-openai') {
+      yield* this.chatStreamAzureOpenAI(params);
+    } else {
+      throw new BadRequestException(`Unsupported provider: ${modelDef.provider}`);
+    }
+  }
+
+  private async *chatStreamOpenAI(
+    params: ChatParams,
+  ): AsyncGenerator<{
+    type: 'delta' | 'done';
+    content: string;
+    tokensIn?: number;
+    tokensOut?: number;
+  }> {
+    const apiKey = await this.settingService.get('openai_api_key');
+    if (!apiKey) {
+      throw new BadRequestException(
+        'OpenAI is not configured. Set openai_api_key in Settings.',
+      );
+    }
+
+    const OpenAI =
+      runtimeRequire('openai').default ?? runtimeRequire('openai').OpenAI;
+    const modelName = params.model.replace('openai/', '');
+    const client = new OpenAI({ apiKey });
+
+    this.logger.log(
+      `Streaming OpenAI model=${modelName}, messages=${params.messages.length}`,
+    );
+
+    const stream = await client.chat.completions.create({
+      model: modelName,
+      messages: params.messages.map((m: any) => ({
+        role: m.role,
+        content: m.content,
+      })),
+      temperature: params.temperature ?? 0.3,
+      max_completion_tokens: params.maxTokens ?? 4096,
+      stream: true,
+      stream_options: { include_usage: true },
+    });
+
+    let fullContent = '';
+    let tokensIn = 0;
+    let tokensOut = 0;
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices?.[0]?.delta?.content;
+      if (delta) {
+        fullContent += delta;
+        yield { type: 'delta', content: delta };
+      }
+      if (chunk.usage) {
+        tokensIn = chunk.usage.prompt_tokens ?? 0;
+        tokensOut = chunk.usage.completion_tokens ?? 0;
+      }
+    }
+
+    yield { type: 'done', content: fullContent, tokensIn, tokensOut };
+  }
+
+  private async *chatStreamAzureOpenAI(
+    params: ChatParams,
+  ): AsyncGenerator<{
+    type: 'delta' | 'done';
+    content: string;
+    tokensIn?: number;
+    tokensOut?: number;
+  }> {
+    const endpoint = await this.settingService.get('azure_openai_endpoint');
+    const apiKey = await this.settingService.get('azure_openai_api_key');
+    const apiVersion = await this.settingService.get(
+      'azure_openai_api_version',
+      '2025-04-01-preview',
+    );
+
+    if (!endpoint || !apiKey) {
+      throw new BadRequestException(
+        'Azure OpenAI is not configured. Set azure_openai_endpoint and azure_openai_api_key in Settings.',
+      );
+    }
+
+    const OpenAI =
+      runtimeRequire('openai').default ?? runtimeRequire('openai').OpenAI;
+    const deploymentName = params.model.replace('azure-openai/', '');
+
+    const cleanEndpoint = new URL(endpoint).origin;
+    const baseURL = `${cleanEndpoint}/openai/deployments/${deploymentName}`;
+    const client = new OpenAI({
+      apiKey,
+      baseURL,
+      defaultQuery: { 'api-version': apiVersion },
+      defaultHeaders: { 'api-key': apiKey },
+    });
+
+    this.logger.log(
+      `Streaming Azure OpenAI model=${deploymentName}, messages=${params.messages.length}`,
+    );
+
+    const stream = await client.chat.completions.create({
+      model: deploymentName,
+      messages: params.messages.map((m: any) => ({
+        role: m.role,
+        content: m.content,
+      })),
+      temperature: params.temperature ?? 0.3,
+      max_completion_tokens: params.maxTokens ?? 4096,
+      stream: true,
+      stream_options: { include_usage: true },
+    });
+
+    let fullContent = '';
+    let tokensIn = 0;
+    let tokensOut = 0;
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices?.[0]?.delta?.content;
+      if (delta) {
+        fullContent += delta;
+        yield { type: 'delta', content: delta };
+      }
+      if (chunk.usage) {
+        tokensIn = chunk.usage.prompt_tokens ?? 0;
+        tokensOut = chunk.usage.completion_tokens ?? 0;
+      }
+    }
+
+    yield { type: 'done', content: fullContent, tokensIn, tokensOut };
+  }
+
+  private async *chatStreamAnthropic(
+    params: ChatParams,
+  ): AsyncGenerator<{
+    type: 'delta' | 'done';
+    content: string;
+    tokensIn?: number;
+    tokensOut?: number;
+  }> {
+    const apiKey = await this.settingService.get('anthropic_api_key');
+    if (!apiKey) {
+      throw new BadRequestException(
+        'Anthropic is not configured. Set anthropic_api_key in Settings.',
+      );
+    }
+
+    const Anthropic =
+      runtimeRequire('@anthropic-ai/sdk').default ??
+      runtimeRequire('@anthropic-ai/sdk');
+    const modelName = params.model.replace('anthropic/', '');
+
+    const systemMessages = params.messages.filter((m) => m.role === 'system');
+    const conversationMessages = params.messages.filter(
+      (m) => m.role !== 'system',
+    );
+
+    const client = new Anthropic({ apiKey });
+
+    this.logger.log(
+      `Streaming Anthropic model=${modelName}, messages=${conversationMessages.length}`,
+    );
+
+    const stream = client.messages.stream({
+      model: modelName,
+      max_tokens: params.maxTokens ?? 4096,
+      system: systemMessages.map((m) => m.content).join('\n\n') || undefined,
+      messages: conversationMessages.map((m) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      })),
+      temperature: params.temperature ?? 0.3,
+    });
+
+    let fullContent = '';
+    let tokensIn = 0;
+    let tokensOut = 0;
+
+    for await (const event of stream) {
+      if (
+        event.type === 'content_block_delta' &&
+        event.delta.type === 'text_delta'
+      ) {
+        fullContent += event.delta.text;
+        yield { type: 'delta', content: event.delta.text };
+      }
+    }
+
+    const finalMessage = await stream.finalMessage();
+    tokensIn = finalMessage.usage?.input_tokens ?? 0;
+    tokensOut = finalMessage.usage?.output_tokens ?? 0;
+
+    yield { type: 'done', content: fullContent, tokensIn, tokensOut };
+  }
+
   // ---- Message persistence ----
 
   async getMessages(questionId: string): Promise<LlmMessage[]> {

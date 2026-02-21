@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams, Link as RouterLink } from 'react-router-dom';
+import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   Container,
   Typography,
@@ -33,6 +35,8 @@ import {
   ExpandLess,
   CheckCircle,
   Chat,
+  ChevronLeft,
+  ChevronRight,
 } from '@mui/icons-material';
 import { questionsApi } from '../api/questions';
 import { llmApi } from '../api/llm';
@@ -54,8 +58,10 @@ export const QuestionDetailPage = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
 
   // Question state
+  const [siblings, setSiblings] = useState<Array<{id: string; question_number: number}>>([]);
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
   const [responseText, setResponseText] = useState('');
@@ -70,6 +76,7 @@ export const QuestionDetailPage = () => {
   const [messages, setMessages] = useState<LlmMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [streamingContent, setStreamingContent] = useState('');
   const [autoApply, setAutoApply] = useState(false);
   const [includeDocuments, setIncludeDocuments] = useState(true);
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
@@ -86,7 +93,7 @@ export const QuestionDetailPage = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messages, streamingContent, scrollToBottom]);
 
   // Fetch question
   const fetchQuestion = useCallback(async () => {
@@ -136,6 +143,31 @@ export const QuestionDetailPage = () => {
     fetchModels();
     fetchMessages();
   }, [fetchQuestion, fetchModels, fetchMessages]);
+
+  // Fetch siblings for navigation
+  useEffect(() => {
+    if (!question?.round_id) return;
+    questionsApi.findAll(question.round_id).then((data) => {
+      setSiblings(data.map(q => ({ id: q.id, question_number: q.question_number })));
+    }).catch(() => { /* silently ignore - navigation is optional */ });
+  }, [question?.round_id]);
+
+  const currentIdx = siblings.findIndex(s => s.id === id);
+  const prevQuestion = currentIdx > 0 ? siblings[currentIdx - 1] : null;
+  const nextQuestion = currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null;
+
+  // Keyboard shortcuts for navigation (Ctrl+Left/Right)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'ArrowLeft' && prevQuestion) {
+        navigate(`/questions/${prevQuestion.id}`);
+      } else if (e.ctrlKey && e.key === 'ArrowRight' && nextQuestion) {
+        navigate(`/questions/${nextQuestion.id}`);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [prevQuestion, nextQuestion, navigate]);
 
   // Debounced auto-save for response text
   const handleResponseChange = useCallback(
@@ -208,40 +240,47 @@ export const QuestionDetailPage = () => {
     }
   }, [id, responseText, enqueueSnackbar, t]);
 
-  // Send chat message
+  // Send chat message (with SSE streaming)
   const handleSendMessage = useCallback(async () => {
     if (!id || !chatInput.trim() || !selectedModel) return;
 
     const messageText = chatInput.trim();
     setChatInput('');
     setSending(true);
+    setStreamingContent('');
 
-    try {
-      const response = await llmApi.chat(id, {
+    llmApi.chatStream(
+      id,
+      {
         message: messageText,
         model: selectedModel,
         systemPrompt: systemPromptOverride || undefined,
         autoApplyToResponse: autoApply,
         includeDocuments,
-      });
-
-      // If auto-apply is enabled, update response text
-      if (autoApply && response.content) {
-        setResponseText(response.content);
-        if (question) {
-          await questionsApi.update(id, { response_text: response.content });
+      },
+      // onDelta - accumulate streaming content
+      (delta) => {
+        setStreamingContent((prev) => prev + delta);
+      },
+      // onDone - finalize
+      (response) => {
+        setStreamingContent('');
+        setSending(false);
+        if (autoApply && response.content) {
+          setResponseText(response.content);
+          questionsApi.update(id, { response_text: response.content });
         }
-      }
-
-      // Refresh messages
-      fetchMessages();
-    } catch {
-      enqueueSnackbar(t('questionDetail.errors.chatFailed'), {
-        variant: 'error',
-      });
-    } finally {
-      setSending(false);
-    }
+        fetchMessages();
+      },
+      // onError
+      (error) => {
+        setSending(false);
+        setStreamingContent('');
+        enqueueSnackbar(error || t('questionDetail.errors.chatFailed'), {
+          variant: 'error',
+        });
+      },
+    );
   }, [
     id,
     chatInput,
@@ -249,7 +288,6 @@ export const QuestionDetailPage = () => {
     systemPromptOverride,
     autoApply,
     includeDocuments,
-    question,
     enqueueSnackbar,
     t,
     fetchMessages,
@@ -362,6 +400,29 @@ export const QuestionDetailPage = () => {
           Q{question.question_number}
         </Typography>
       </Breadcrumbs>
+
+      {/* Question navigation */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <Button
+          size="small"
+          startIcon={<ChevronLeft />}
+          disabled={!prevQuestion}
+          onClick={() => prevQuestion && navigate(`/questions/${prevQuestion.id}`)}
+        >
+          Q{prevQuestion?.question_number ?? ''}
+        </Button>
+        <Typography variant="h6" fontWeight={600} sx={{ flex: 1, textAlign: 'center' }}>
+          {t('questionDetail.title', { number: question.question_number })}
+        </Typography>
+        <Button
+          size="small"
+          endIcon={<ChevronRight />}
+          disabled={!nextQuestion}
+          onClick={() => nextQuestion && navigate(`/questions/${nextQuestion.id}`)}
+        >
+          Q{nextQuestion?.question_number ?? ''}
+        </Button>
+      </Box>
 
       <Box
         sx={{
@@ -625,12 +686,60 @@ export const QuestionDetailPage = () => {
                     borderColor: 'divider',
                   }}
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-                  >
-                    {msg.content}
-                  </Typography>
+                  {msg.role === 'assistant' ? (
+                    <Box
+                      sx={{
+                        '& p': { m: 0, mb: 1, '&:last-child': { mb: 0 } },
+                        '& ul, & ol': { m: 0, mb: 1, pl: 2.5 },
+                        '& li': { mb: 0.5 },
+                        '& code': {
+                          bgcolor: 'action.hover',
+                          px: 0.5,
+                          py: 0.25,
+                          borderRadius: 0.5,
+                          fontSize: '0.85em',
+                          fontFamily: 'monospace',
+                        },
+                        '& pre': {
+                          bgcolor: 'grey.900',
+                          color: 'grey.100',
+                          p: 1.5,
+                          borderRadius: 1,
+                          overflow: 'auto',
+                          mb: 1,
+                          '& code': { bgcolor: 'transparent', p: 0, color: 'inherit' },
+                        },
+                        '& h1, & h2, & h3, & h4': { mt: 1.5, mb: 0.5, fontWeight: 600 },
+                        '& h1': { fontSize: '1.1rem' },
+                        '& h2': { fontSize: '1rem' },
+                        '& h3': { fontSize: '0.95rem' },
+                        '& blockquote': {
+                          borderLeft: '3px solid',
+                          borderColor: 'divider',
+                          pl: 1.5,
+                          ml: 0,
+                          color: 'text.secondary',
+                        },
+                        '& table': { borderCollapse: 'collapse', mb: 1, width: '100%' },
+                        '& th, & td': { border: '1px solid', borderColor: 'divider', px: 1, py: 0.5, fontSize: '0.85rem' },
+                        '& th': { bgcolor: 'action.hover', fontWeight: 600 },
+                        '& a': { color: 'primary.main' },
+                        fontSize: '0.875rem',
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </Box>
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+                    >
+                      {msg.content}
+                    </Typography>
+                  )}
                 </Box>
 
                 {/* Message metadata */}
@@ -673,7 +782,7 @@ export const QuestionDetailPage = () => {
               </Box>
             ))}
 
-            {sending && (
+            {sending && !streamingContent && (
               <Box
                 sx={{
                   display: 'flex',
@@ -686,6 +795,73 @@ export const QuestionDetailPage = () => {
                 <Typography variant="body2" color="text.secondary">
                   {t('questionDetail.chat.thinking')}
                 </Typography>
+              </Box>
+            )}
+
+            {sending && streamingContent && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <Box
+                  sx={{
+                    maxWidth: '85%',
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: 'grey.50',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      '& p': { m: 0, mb: 1, '&:last-child': { mb: 0 } },
+                      '& ul, & ol': { m: 0, mb: 1, pl: 2.5 },
+                      '& li': { mb: 0.5 },
+                      '& code': {
+                        bgcolor: 'action.hover',
+                        px: 0.5,
+                        py: 0.25,
+                        borderRadius: 0.5,
+                        fontSize: '0.85em',
+                        fontFamily: 'monospace',
+                      },
+                      '& pre': {
+                        bgcolor: 'grey.900',
+                        color: 'grey.100',
+                        p: 1.5,
+                        borderRadius: 1,
+                        overflow: 'auto',
+                        mb: 1,
+                        '& code': { bgcolor: 'transparent', p: 0, color: 'inherit' },
+                      },
+                      '& h1, & h2, & h3, & h4': { mt: 1.5, mb: 0.5, fontWeight: 600 },
+                      '& h1': { fontSize: '1.1rem' },
+                      '& h2': { fontSize: '1rem' },
+                      '& h3': { fontSize: '0.95rem' },
+                      '& blockquote': {
+                        borderLeft: '3px solid',
+                        borderColor: 'divider',
+                        pl: 1.5,
+                        ml: 0,
+                        color: 'text.secondary',
+                      },
+                      '& table': { borderCollapse: 'collapse', mb: 1, width: '100%' },
+                      '& th, & td': { border: '1px solid', borderColor: 'divider', px: 1, py: 0.5, fontSize: '0.85rem' },
+                      '& th': { bgcolor: 'action.hover', fontWeight: 600 },
+                      '& a': { color: 'primary.main' },
+                      fontSize: '0.875rem',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {streamingContent}
+                    </ReactMarkdown>
+                  </Box>
+                </Box>
               </Box>
             )}
 

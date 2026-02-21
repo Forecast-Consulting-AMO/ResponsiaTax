@@ -26,10 +26,27 @@
     "optional": "Facultatif"
   },
   "nav": {
-    "home": "Accueil",
+    "home": "Tableau de bord",
     "dossiers": "Dossiers",
     "settings": "Paramètres",
     "questions": "Questions"
+  },
+  "home": {
+    "title": "Tableau de bord",
+    "subtitle": "Aperçu de vos dossiers de contrôle fiscal",
+    "stats": {
+      "totalDossiers": "Dossiers totaux",
+      "activeDossiers": "Actifs",
+      "totalRounds": "Tours de contrôle",
+      "totalDocuments": "Documents"
+    },
+    "activeDossiers": "Dossiers actifs",
+    "recentActivity": "Activité récente",
+    "completionOverview": "Aperçu de l'avancement",
+    "noActiveDossiers": "Aucun dossier actif",
+    "noDossiers": "Aucun dossier pour le moment",
+    "rounds": "tours",
+    "completed": "terminé(s)"
   },
   "dossier": {
     "detail": "Détail du dossier",
@@ -197,7 +214,13 @@
       "answer": "Répondre",
       "answered": "répondue(s)",
       "reviewedCount": "vérifiée(s)",
-      "noResponse": "Pas encore de réponse"
+      "noResponse": "Pas encore de réponse",
+      "draftAll": "Rédiger tout",
+      "cancelDraft": "Annuler",
+      "allAnswered": "Toutes les questions ont déjà une réponse.",
+      "draftingProgress": "Rédaction {{current}}/{{total}}...",
+      "draftAllComplete": "{{count}} réponses rédigées avec succès.",
+      "draftAllCancelled": "Rédaction annulée."
     },
     "documents": {
       "title": "Documents",
@@ -217,6 +240,8 @@
       "documentsFetchFailed": "Impossible de charger les documents",
       "noQuestionDocument": "Aucun document de type \"Demande de renseignements\" trouvé. Téléversez-en un d'abord.",
       "extractFailed": "Impossible d'extraire les questions",
+      "draftAllFailed": "Impossible de rédiger les réponses",
+      "noModels": "Aucun modèle LLM disponible. Configurez une clé API dans les Paramètres.",
       "exportFailed": "Impossible d'exporter le document",
       "uploadFailed": "Impossible de téléverser le document",
       "ocrFailed": "Impossible de lancer l'OCR",
@@ -232,6 +257,7 @@
     }
   },
   "questionDetail": {
+    "title": "Question {{number}}",
     "notFound": "Question introuvable",
     "saved": "Réponse enregistrée",
     "markedReviewed": "Réponse marquée comme relue",

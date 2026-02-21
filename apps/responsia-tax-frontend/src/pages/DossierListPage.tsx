@@ -74,8 +74,8 @@ export const DossierListPage = () => {
   const fetchDossiers = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await dossiersApi.findAll();
-      setDossiers(data);
+      const result = await dossiersApi.findAll(undefined, undefined, 100);
+      setDossiers(result.data);
     } catch {
       enqueueSnackbar(t('dossiers.errors.fetchFailed'), { variant: 'error' });
     } finally {

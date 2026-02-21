@@ -17,7 +17,16 @@ export class DossierService {
     return this.dossierRepo.save(dossier);
   }
 
-  async findAll(status?: DossierStatus): Promise<Dossier[]> {
+  async findAll(
+    status?: DossierStatus,
+    page?: number,
+    limit?: number,
+  ): Promise<{
+    data: (Dossier & { rounds_count: number; documents_count: number })[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const qb = this.dossierRepo.createQueryBuilder('d')
       .leftJoin('d.rounds', 'r')
       .leftJoin('d.documents', 'doc')
@@ -28,14 +37,25 @@ export class DossierService {
       qb.where('d.status = :status', { status });
     }
 
+    const effectivePage = page && page > 0 ? page : 1;
+    const effectiveLimit = limit && limit > 0 ? Math.min(limit, 100) : 50;
+
+    // Get total count before pagination
+    const total = await qb.getCount();
+
+    // Apply pagination
+    qb.skip((effectivePage - 1) * effectiveLimit).take(effectiveLimit);
+
     const dossiers = await qb.getMany();
 
     // Add counts as virtual properties
-    return dossiers.map((d) => ({
+    const data = dossiers.map((d) => ({
       ...d,
       rounds_count: d.rounds?.length ?? 0,
       documents_count: d.documents?.length ?? 0,
     })) as (Dossier & { rounds_count: number; documents_count: number })[];
+
+    return { data, total, page: effectivePage, limit: effectiveLimit };
   }
 
   async findOne(id: string): Promise<Dossier> {

@@ -3,10 +3,17 @@ import type { Dossier, CreateDossierDto, UpdateDossierDto } from '../types';
 
 const BASE = '/api/v1/dossiers';
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export const dossiersApi = {
-  findAll: (status?: string) =>
-    AXIOS_INSTANCE.get<Dossier[]>(BASE, {
-      params: status ? { status } : {},
+  findAll: (status?: string, page?: number, limit?: number) =>
+    AXIOS_INSTANCE.get<PaginatedResponse<Dossier>>(BASE, {
+      params: { ...(status ? { status } : {}), ...(page ? { page } : {}), ...(limit ? { limit } : {}) },
     }).then((r) => r.data),
 
   findOne: (id: string) =>

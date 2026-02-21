@@ -3,7 +3,7 @@ FROM node:lts-alpine
 WORKDIR /app
 
 COPY dist/apps/responsia-tax-backend/package*.json ./
-RUN npm install --omit=dev && npm install pg openai @anthropic-ai/sdk @azure/ai-form-recognizer
+RUN npm install --omit=dev --legacy-peer-deps
 
 COPY dist/apps/responsia-tax-backend/ .
 

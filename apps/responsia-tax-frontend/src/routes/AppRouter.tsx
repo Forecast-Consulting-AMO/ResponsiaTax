@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 
 const DossierListPage = lazy(() =>
@@ -16,6 +16,9 @@ const QuestionDetailPage = lazy(() =>
 );
 const SettingsPage = lazy(() =>
   import('../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+);
+const HomePage = lazy(() =>
+  import('../pages/HomePage').then((m) => ({ default: m.HomePage })),
 );
 
 const PageLoader = () => (
@@ -35,7 +38,7 @@ export const AppRouter = () => {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/" element={<Navigate to="/dossiers" replace />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/dossiers" element={<DossierListPage />} />
         <Route path="/dossiers/:id" element={<DossierDetailPage />} />
         <Route path="/rounds/:id" element={<RoundDetailPage />} />

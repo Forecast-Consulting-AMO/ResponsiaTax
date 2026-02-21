@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -51,6 +52,9 @@ import { ExportModule } from '../export/export.module';
         synchronize: true,
       }),
     }),
+
+    // Rate limiting (default: 30 requests per 60 seconds)
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 30 }]),
 
     // Feature modules
     AuthModule,

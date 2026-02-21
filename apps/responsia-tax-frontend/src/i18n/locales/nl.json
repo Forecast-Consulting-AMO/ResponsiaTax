@@ -26,10 +26,27 @@
     "optional": "Optioneel"
   },
   "nav": {
-    "home": "Startpagina",
+    "home": "Dashboard",
     "dossiers": "Dossiers",
     "settings": "Instellingen",
     "questions": "Vragen"
+  },
+  "home": {
+    "title": "Dashboard",
+    "subtitle": "Overzicht van uw belastingcontroledossiers",
+    "stats": {
+      "totalDossiers": "Totale dossiers",
+      "activeDossiers": "Actief",
+      "totalRounds": "Controleronden",
+      "totalDocuments": "Documenten"
+    },
+    "activeDossiers": "Actieve dossiers",
+    "recentActivity": "Recente activiteit",
+    "completionOverview": "Voortgangsoverzicht",
+    "noActiveDossiers": "Geen actieve dossiers",
+    "noDossiers": "Nog geen dossiers",
+    "rounds": "ronden",
+    "completed": "voltooid"
   },
   "dossier": {
     "detail": "Dossierdetail",
@@ -187,7 +204,13 @@
       "answer": "Beantwoorden",
       "answered": "beantwoord",
       "reviewedCount": "gecontroleerd",
-      "noResponse": "Nog geen antwoord"
+      "noResponse": "Nog geen antwoord",
+      "draftAll": "Alles opstellen",
+      "cancelDraft": "Annuleren",
+      "allAnswered": "Alle vragen hebben al een antwoord.",
+      "draftingProgress": "Opstellen {{current}}/{{total}}...",
+      "draftAllComplete": "{{count}} antwoorden succesvol opgesteld.",
+      "draftAllCancelled": "Opstellen geannuleerd."
     },
     "documents": {
       "title": "Documenten",
@@ -207,6 +230,8 @@
       "documentsFetchFailed": "Kan documenten niet laden",
       "noQuestionDocument": "Geen document van het type \"Vraag om inlichtingen\" gevonden. Upload er eerst een.",
       "extractFailed": "Kan vragen niet extraheren",
+      "draftAllFailed": "Kan antwoorden niet opstellen",
+      "noModels": "Geen LLM-modellen beschikbaar. Configureer een API-sleutel in Instellingen.",
       "exportFailed": "Kan document niet exporteren",
       "uploadFailed": "Kan document niet uploaden",
       "ocrFailed": "Kan OCR niet starten",
@@ -222,6 +247,7 @@
     }
   },
   "questionDetail": {
+    "title": "Vraag {{number}}",
     "notFound": "Vraag niet gevonden",
     "saved": "Antwoord opgeslagen",
     "markedReviewed": "Antwoord gemarkeerd als beoordeeld",

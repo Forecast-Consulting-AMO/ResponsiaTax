@@ -13,6 +13,7 @@ import {
   ListItemText,
   Divider,
 } from '@mui/material';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import SettingsIcon from '@mui/icons-material/Settings';
 
@@ -31,6 +32,11 @@ export const AppLayout = ({ children }: PropsWithChildren) => {
 
   const navItems: NavItem[] = [
     {
+      labelKey: 'nav.home',
+      path: '/',
+      icon: <DashboardIcon />,
+    },
+    {
       labelKey: 'nav.dossiers',
       path: '/dossiers',
       icon: <FolderOpenIcon />,
@@ -43,6 +49,7 @@ export const AppLayout = ({ children }: PropsWithChildren) => {
   ];
 
   const isActive = (path: string): boolean => {
+    if (path === '/') return location.pathname === '/';
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
@@ -74,7 +81,7 @@ export const AppLayout = ({ children }: PropsWithChildren) => {
             noWrap
             component="div"
             sx={{ fontWeight: 700, color: 'primary.main', cursor: 'pointer' }}
-            onClick={() => navigate('/dossiers')}
+            onClick={() => navigate('/')}
           >
             {t('common.appName')}
           </Typography>

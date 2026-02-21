@@ -26,10 +26,27 @@
     "optional": "Optional"
   },
   "nav": {
-    "home": "Home",
+    "home": "Dashboard",
     "dossiers": "Dossiers",
     "settings": "Settings",
     "questions": "Questions"
+  },
+  "home": {
+    "title": "Dashboard",
+    "subtitle": "Overview of your tax audit dossiers",
+    "stats": {
+      "totalDossiers": "Total dossiers",
+      "activeDossiers": "Active",
+      "totalRounds": "Audit rounds",
+      "totalDocuments": "Documents"
+    },
+    "activeDossiers": "Active Dossiers",
+    "recentActivity": "Recent Activity",
+    "completionOverview": "Completion Overview",
+    "noActiveDossiers": "No active dossiers",
+    "noDossiers": "No dossiers yet",
+    "rounds": "rounds",
+    "completed": "completed"
   },
   "dossier": {
     "detail": "Dossier Detail",
@@ -197,7 +214,13 @@
       "answer": "Answer",
       "answered": "answered",
       "reviewedCount": "reviewed",
-      "noResponse": "No response yet"
+      "noResponse": "No response yet",
+      "draftAll": "Draft All",
+      "cancelDraft": "Cancel",
+      "allAnswered": "All questions already have a response.",
+      "draftingProgress": "Drafting {{current}}/{{total}}...",
+      "draftAllComplete": "{{count}} responses drafted successfully.",
+      "draftAllCancelled": "Draft cancelled."
     },
     "documents": {
       "title": "Documents",
@@ -217,6 +240,8 @@
       "documentsFetchFailed": "Unable to load documents",
       "noQuestionDocument": "No \"Information Request\" document found. Upload one first.",
       "extractFailed": "Unable to extract questions",
+      "draftAllFailed": "Unable to draft responses",
+      "noModels": "No LLM models available. Configure an API key in Settings.",
       "exportFailed": "Unable to export document",
       "uploadFailed": "Unable to upload document",
       "ocrFailed": "Unable to run OCR",
@@ -232,6 +257,7 @@
     }
   },
   "questionDetail": {
+    "title": "Question {{number}}",
     "notFound": "Question not found",
     "saved": "Response saved",
     "markedReviewed": "Response marked as reviewed",

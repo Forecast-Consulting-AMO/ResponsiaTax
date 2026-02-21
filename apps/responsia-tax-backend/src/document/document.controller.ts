@@ -14,6 +14,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -43,7 +44,17 @@ export class DocumentController {
 
   @Post('dossiers/:dossierId/documents')
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }))
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 50 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+      const allowed = /\.(pdf|docx?|xlsx?|png|jpe?g|tiff?)$/i;
+      if (allowed.test(file.originalname)) {
+        cb(null, true);
+      } else {
+        cb(new BadRequestException('Unsupported file type. Allowed: PDF, DOCX, XLSX, PNG, JPG, TIFF'), false);
+      }
+    },
+  }))
   @ApiOperation({ summary: 'Upload a document to a dossier' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({

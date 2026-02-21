@@ -36,11 +36,21 @@ export class DossierController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all dossiers' })
+  @ApiOperation({ summary: 'List dossiers (paginated)' })
   @ApiQuery({ name: 'status', enum: DossierStatus, required: false })
-  @ApiResponse({ status: 200, description: 'List of dossiers' })
-  findAll(@Query('status') status?: DossierStatus) {
-    return this.dossierService.findAll(status);
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 50, max: 100)' })
+  @ApiResponse({ status: 200, description: 'Paginated list of dossiers' })
+  findAll(
+    @Query('status') status?: DossierStatus,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.dossierService.findAll(
+      status,
+      page ? parseInt(page, 10) : undefined,
+      limit ? parseInt(limit, 10) : undefined,
+    );
   }
 
   @Get(':id')
