@@ -49,6 +49,36 @@ export class LlmController {
     return AVAILABLE_MODELS;
   }
 
+  @Get('questions/:questionId/system-prompt')
+  @ApiOperation({ summary: 'Get the effective base system prompt for a question' })
+  @ApiParam({ name: 'questionId', type: 'string', format: 'uuid' })
+  async getEffectiveSystemPrompt(
+    @Param('questionId', ParseUUIDPipe) questionId: string,
+  ) {
+    const question = await this.questionRepo.findOne({
+      where: { id: questionId },
+      relations: ['round'],
+    });
+    if (!question) {
+      throw new NotFoundException(`Question ${questionId} not found`);
+    }
+
+    const dossierId = question.round?.dossier_id;
+    let basePrompt = '';
+
+    if (dossierId) {
+      const dossier = await this.dossierRepo.findOne({ where: { id: dossierId } });
+      if (dossier?.system_prompt) {
+        basePrompt = dossier.system_prompt;
+      }
+    }
+    if (!basePrompt) {
+      basePrompt = await this.settingService.get('default_system_prompt') ?? '';
+    }
+
+    return { system_prompt: basePrompt };
+  }
+
   @Post('questions/:questionId/chat')
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @ApiOperation({ summary: 'Chat with an LLM for a specific question' })

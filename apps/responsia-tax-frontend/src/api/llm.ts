@@ -73,6 +73,11 @@ export const llmApi = {
     return controller;
   },
 
+  getSystemPrompt: (questionId: string) =>
+    AXIOS_INSTANCE.get<{ system_prompt: string }>(
+      `${BASE}/${questionId}/system-prompt`,
+    ).then((r) => r.data.system_prompt),
+
   getMessages: (questionId: string) =>
     AXIOS_INSTANCE.get<LlmMessage[]>(`${BASE}/${questionId}/messages`).then(
       (r) => r.data,

@@ -79,8 +79,9 @@ export const QuestionDetailPage = () => {
   const [streamingContent, setStreamingContent] = useState('');
   const [autoApply, setAutoApply] = useState(false);
   const [includeDocuments, setIncludeDocuments] = useState(true);
-  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+  const [showSystemPrompt, setShowSystemPrompt] = useState(true);
   const [systemPromptOverride, setSystemPromptOverride] = useState('');
+  const [systemPromptLoaded, setSystemPromptLoaded] = useState(false);
 
   // Refs
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -138,11 +139,26 @@ export const QuestionDetailPage = () => {
     }
   }, [id]);
 
+  // Fetch effective system prompt (pre-populate override field)
+  const fetchSystemPrompt = useCallback(async () => {
+    if (!id || systemPromptLoaded) return;
+    try {
+      const prompt = await llmApi.getSystemPrompt(id);
+      if (prompt && !systemPromptOverride) {
+        setSystemPromptOverride(prompt);
+      }
+      setSystemPromptLoaded(true);
+    } catch {
+      // Silently ignore - prompt will use default
+    }
+  }, [id, systemPromptLoaded, systemPromptOverride]);
+
   useEffect(() => {
     fetchQuestion();
     fetchModels();
     fetchMessages();
-  }, [fetchQuestion, fetchModels, fetchMessages]);
+    fetchSystemPrompt();
+  }, [fetchQuestion, fetchModels, fetchMessages, fetchSystemPrompt]);
 
   // Fetch siblings for navigation
   useEffect(() => {
@@ -600,7 +616,7 @@ export const QuestionDetailPage = () => {
             </FormControl>
           </Box>
 
-          {/* System prompt override (collapsible) */}
+          {/* System prompt (collapsible, expanded by default) */}
           <Box sx={{ flexShrink: 0, mb: 1 }}>
             <Button
               size="small"
@@ -612,14 +628,23 @@ export const QuestionDetailPage = () => {
             </Button>
             <Collapse in={showSystemPrompt}>
               <TextField
+                label={t('questionDetail.chat.systemPrompt')}
                 value={systemPromptOverride}
                 onChange={(e) => setSystemPromptOverride(e.target.value)}
                 placeholder={t('questionDetail.chat.systemPromptPlaceholder')}
                 fullWidth
                 multiline
-                rows={3}
+                minRows={2}
+                maxRows={6}
                 size="small"
-                sx={{ mb: 1 }}
+                sx={{
+                  mb: 1,
+                  '& .MuiInputBase-root': {
+                    fontSize: '0.8rem',
+                    fontFamily: 'monospace',
+                  },
+                }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Collapse>
           </Box>
