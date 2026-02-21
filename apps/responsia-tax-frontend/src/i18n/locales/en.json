@@ -359,9 +359,9 @@
         "title": "Azure OpenAI",
         "description": "Azure OpenAI connection configuration for GPT models."
       },
-      "azureAnthropic": {
-        "title": "Azure Anthropic",
-        "description": "Azure Anthropic connection configuration for Claude models."
+      "anthropic": {
+        "title": "Anthropic (Direct API)",
+        "description": "Anthropic API key for using Claude models directly."
       },
       "azureDi": {
         "title": "Azure Document Intelligence (OCR)",
@@ -377,8 +377,7 @@
       "azureOpenaiEndpoint": "Azure OpenAI Endpoint",
       "azureOpenaiApiKey": "Azure OpenAI API Key",
       "azureOpenaiApiVersion": "Azure OpenAI API Version",
-      "azureAnthropicEndpoint": "Azure Anthropic Endpoint",
-      "azureAnthropicApiKey": "Azure Anthropic API Key",
+      "anthropicApiKey": "Anthropic API Key",
       "azureDiEndpoint": "Azure Document Intelligence Endpoint",
       "azureDiKey": "Azure Document Intelligence Key",
       "defaultLlmModel": "Default LLM Model",

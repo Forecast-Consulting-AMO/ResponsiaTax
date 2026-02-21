@@ -15,16 +15,17 @@ export const AVAILABLE_MODELS = [
   { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'openai' },
   { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano', provider: 'openai' },
   { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'openai' },
+  { id: 'openai/o3', name: 'o3 (reasoning)', provider: 'openai' },
   { id: 'openai/o3-mini', name: 'o3-mini', provider: 'openai' },
+  // Anthropic (direct API)
+  { id: 'anthropic/claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', provider: 'anthropic' },
+  { id: 'anthropic/claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', provider: 'anthropic' },
   // Azure OpenAI
   { id: 'azure-openai/gpt-5.2-chat', name: 'Azure GPT-5.2 Chat', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4o', name: 'Azure GPT-4o', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4.1', name: 'Azure GPT-4.1', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4.1-mini', name: 'Azure GPT-4.1 Mini', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4.1-nano', name: 'Azure GPT-4.1 Nano', provider: 'azure-openai' },
-  // Azure Anthropic (via Azure AI Foundry)
-  { id: 'azure-anthropic/claude-sonnet-4-5', name: 'Azure Claude Sonnet 4.5', provider: 'azure-anthropic' },
-  { id: 'azure-anthropic/claude-haiku-3-5', name: 'Azure Claude Haiku 3.5', provider: 'azure-anthropic' },
 ];
 
 export interface ChatParams {
@@ -65,10 +66,10 @@ export class LlmService {
 
     if (modelDef.provider === 'openai') {
       return this.chatOpenAI(params);
+    } else if (modelDef.provider === 'anthropic') {
+      return this.chatAnthropic(params);
     } else if (modelDef.provider === 'azure-openai') {
       return this.chatAzureOpenAI(params);
-    } else if (modelDef.provider === 'azure-anthropic') {
-      return this.chatAzureAnthropic(params);
     } else {
       throw new BadRequestException(`Unsupported provider: ${modelDef.provider}`);
     }
@@ -174,32 +175,28 @@ export class LlmService {
     };
   }
 
-  // ---- Azure Anthropic (via Azure AI Foundry) ----
+  // ---- Anthropic (direct API) ----
 
-  private async chatAzureAnthropic(params: ChatParams): Promise<ChatResponse> {
-    const endpoint = await this.settingService.get('azure_anthropic_endpoint');
-    const apiKey = await this.settingService.get('azure_anthropic_api_key');
+  private async chatAnthropic(params: ChatParams): Promise<ChatResponse> {
+    const apiKey = await this.settingService.get('anthropic_api_key');
 
-    if (!endpoint || !apiKey) {
+    if (!apiKey) {
       throw new BadRequestException(
-        'Azure Anthropic is not configured. Set azure_anthropic_endpoint and azure_anthropic_api_key in Settings.',
+        'Anthropic is not configured. Set anthropic_api_key in Settings.',
       );
     }
 
     const Anthropic = runtimeRequire('@anthropic-ai/sdk').default ?? runtimeRequire('@anthropic-ai/sdk');
 
-    const modelName = params.model.replace('azure-anthropic/', '');
+    const modelName = params.model.replace('anthropic/', '');
 
     const systemMessages = params.messages.filter((m) => m.role === 'system');
     const conversationMessages = params.messages.filter((m) => m.role !== 'system');
 
-    const client = new Anthropic({
-      baseURL: endpoint,
-      apiKey,
-    });
+    const client = new Anthropic({ apiKey });
 
     this.logger.log(
-      `Calling Azure Anthropic model=${modelName}, messages=${conversationMessages.length}`,
+      `Calling Anthropic model=${modelName}, messages=${conversationMessages.length}`,
     );
 
     const response = await client.messages.create({
@@ -215,7 +212,7 @@ export class LlmService {
 
     const textBlock = response.content.find((b: any) => b.type === 'text');
     if (!textBlock || textBlock.type !== 'text') {
-      throw new BadRequestException('Azure Anthropic returned an empty response');
+      throw new BadRequestException('Anthropic returned an empty response');
     }
 
     return {

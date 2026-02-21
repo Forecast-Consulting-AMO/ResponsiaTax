@@ -102,8 +102,8 @@ export const SettingsPage = () => {
         // Refresh models if API keys were saved
         if (
           sectionKey === 'openai' ||
-          sectionKey === 'azure_openai' ||
-          sectionKey === 'azure_anthropic'
+          sectionKey === 'anthropic' ||
+          sectionKey === 'azure_openai'
         ) {
           fetchModels();
         }
@@ -157,21 +157,15 @@ export const SettingsPage = () => {
       ],
     },
     {
-      sectionKey: 'azure_anthropic',
-      title: t('settings.sections.azureAnthropic.title'),
-      description: t('settings.sections.azureAnthropic.description'),
+      sectionKey: 'anthropic',
+      title: t('settings.sections.anthropic.title'),
+      description: t('settings.sections.anthropic.description'),
       fields: [
         {
-          key: 'azure_anthropic_endpoint',
-          label: t('settings.fields.azureAnthropicEndpoint'),
-          type: 'text',
-          placeholder: 'https://your-resource.anthropic.azure.com/',
-        },
-        {
-          key: 'azure_anthropic_api_key',
-          label: t('settings.fields.azureAnthropicApiKey'),
+          key: 'anthropic_api_key',
+          label: t('settings.fields.anthropicApiKey'),
           type: 'password',
-          placeholder: '***',
+          placeholder: 'sk-ant-...',
         },
       ],
     },
