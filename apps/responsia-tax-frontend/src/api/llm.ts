@@ -73,6 +73,12 @@ export const llmApi = {
     return controller;
   },
 
+  classifyDocTypes: (filenames: string[]) =>
+    AXIOS_INSTANCE.post<{ classifications: string[] }>(
+      '/api/v1/llm/classify-doc-types',
+      { filenames },
+    ).then((r) => r.data.classifications),
+
   getSystemPrompt: (questionId: string) =>
     AXIOS_INSTANCE.get<{ system_prompt: string }>(
       `${BASE}/${questionId}/system-prompt`,

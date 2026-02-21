@@ -19,6 +19,7 @@ import { Repository } from 'typeorm';
 import { LlmService, AVAILABLE_MODELS } from './llm.service';
 import { LlmRole } from './entities/llm-message.entity';
 import { ChatRequestDto } from './dto/chat-request.dto';
+import { ClassifyDocTypesDto } from './dto/classify-doc-types.dto';
 import { RagService } from '../document/rag.service';
 import { SettingService } from '../setting/setting.service';
 import { Question } from '../question/entities/question.entity';
@@ -47,6 +48,77 @@ export class LlmController {
   @ApiOperation({ summary: 'List available LLM models' })
   getModels() {
     return AVAILABLE_MODELS;
+  }
+
+  @Post('llm/classify-doc-types')
+  @ApiOperation({ summary: 'Classify filenames into document types using an LLM' })
+  async classifyDocTypes(@Body() dto: ClassifyDocTypesDto) {
+    if (!dto.filenames.length) {
+      return { classifications: [] };
+    }
+
+    // Pick the model: explicit > Sonnet > first available with a key
+    let model = dto.model;
+    if (!model) {
+      const hasAnthropic = await this.settingService.get('anthropic_api_key');
+      if (hasAnthropic) {
+        model = 'anthropic/claude-sonnet-4-5-20250929';
+      } else {
+        const hasOpenai = await this.settingService.get('openai_api_key');
+        model = hasOpenai ? 'openai/gpt-4.1-mini' : 'azure-openai/gpt-4.1-mini';
+      }
+    }
+
+    const filenameList = dto.filenames
+      .map((f, i) => `${i + 1}. "${f}"`)
+      .join('\n');
+
+    const prompt = `Classify each filename into exactly one document type.
+
+Types:
+- question_dr: Tax audit question or information request from the tax inspector (demande de renseignement, avis de rectification, notification, questionnaire, contrôle fiscal)
+- support: Supporting documents, annexes, invoices, contracts, financial statements, accounting records, technical documentation
+- response_draft: Draft response or reply to the inspector, answer project
+- other: Anything that does not fit the above categories
+
+Filenames:
+${filenameList}
+
+Respond with ONLY a JSON array of the document types in the same order as the filenames. Example: ["support","response_draft","question_dr"]`;
+
+    try {
+      const response = await this.llmService.chat({
+        messages: [{ role: 'user', content: prompt }],
+        model,
+        temperature: 0,
+        maxTokens: 512,
+      });
+
+      // Extract JSON array from the response (handle markdown code blocks)
+      const raw = response.content.trim();
+      const jsonMatch = raw.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        this.logger.warn(`LLM classification returned non-JSON: ${raw}`);
+        return {
+          classifications: dto.filenames.map(() => 'other'),
+        };
+      }
+
+      const parsed: string[] = JSON.parse(jsonMatch[0]);
+      const validTypes = ['question_dr', 'support', 'response_draft', 'other'];
+      const classifications = dto.filenames.map((_, i) => {
+        const val = parsed[i];
+        return validTypes.includes(val) ? val : 'other';
+      });
+
+      return { classifications };
+    } catch (err: any) {
+      this.logger.error(`Doc type classification failed: ${err.message}`);
+      // Graceful fallback — return "other" for all
+      return {
+        classifications: dto.filenames.map(() => 'other'),
+      };
+    }
   }
 
   @Get('questions/:questionId/system-prompt')

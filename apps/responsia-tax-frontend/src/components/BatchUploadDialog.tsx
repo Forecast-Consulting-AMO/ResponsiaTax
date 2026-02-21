@@ -17,69 +17,13 @@ import {
   Box,
   CircularProgress,
   IconButton,
+  LinearProgress,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
+import { llmApi } from '../api/llm';
 import type { DocType } from '../types';
 
 const DOC_TYPES: DocType[] = ['question_dr', 'support', 'response_draft', 'other'];
-
-/**
- * Auto-detect document type based on filename patterns.
- * Uses NFD normalization to strip accents for robust matching.
- */
-function detectDocType(filename: string): DocType {
-  const lower = filename.toLowerCase();
-  // Strip accents: "réponse" → "reponse", "pièce" → "piece"
-  const ascii = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-  // Information request / demand for info patterns
-  if (
-    /demande[\s_-]*(de[\s_-]*)?renseignement/.test(ascii) ||
-    /(^|[\s_\-.])dr([\s_\-.]|$)/.test(lower) ||
-    /vraag[\s_-]*(om[\s_-]*)?inlichtingen/.test(ascii) ||
-    /information[\s_-]*request/.test(lower) ||
-    /avis[\s_-]*(de[\s_-]*)?rectification/.test(ascii) ||
-    /notification/.test(lower)
-  ) {
-    return 'question_dr';
-  }
-
-  // Response / reply patterns
-  if (
-    /reponse/.test(ascii) ||
-    /reply/.test(lower) ||
-    /antwoord/.test(lower) ||
-    /response/.test(lower) ||
-    /brouillon/.test(lower) ||
-    /draft/.test(lower) ||
-    /concept/.test(lower)
-  ) {
-    return 'response_draft';
-  }
-
-  // Supporting document patterns
-  if (
-    /annexe/.test(lower) ||
-    /bijlage/.test(lower) ||
-    /attachment/.test(lower) ||
-    /piece[\s_-]*justificative/.test(ascii) ||
-    /bewijsstuk/.test(lower) ||
-    /support/.test(lower) ||
-    /justificati/.test(lower) ||
-    /factur/.test(lower) ||
-    /invoice/.test(lower) ||
-    /contrat/.test(lower) ||
-    /contract/.test(lower) ||
-    /bilan/.test(lower) ||
-    /balans/.test(lower) ||
-    /comptes?/.test(lower) ||
-    /rekening/.test(lower)
-  ) {
-    return 'support';
-  }
-
-  return 'other';
-}
 
 export interface BatchUploadItem {
   file: File;
@@ -104,15 +48,47 @@ export const BatchUploadDialog = ({
   const { t } = useTranslation();
 
   const [items, setItems] = useState<BatchUploadItem[]>([]);
+  const [classifying, setClassifying] = useState(false);
 
-  // Rebuild items whenever the files prop changes
+  // When files change, initialize items with 'other' and call LLM to classify
   useEffect(() => {
-    setItems(
-      files.map((file) => ({
-        file,
-        docType: detectDocType(file.name),
-      })),
-    );
+    if (files.length === 0) {
+      setItems([]);
+      return;
+    }
+
+    // Initialize all items immediately as 'other' so the dialog is usable
+    const initial = files.map((file) => ({
+      file,
+      docType: 'other' as DocType,
+    }));
+    setItems(initial);
+
+    // Call LLM to classify filenames
+    let cancelled = false;
+    setClassifying(true);
+
+    llmApi
+      .classifyDocTypes(files.map((f) => f.name))
+      .then((classifications) => {
+        if (cancelled) return;
+        setItems(
+          files.map((file, i) => ({
+            file,
+            docType: (classifications[i] as DocType) || 'other',
+          })),
+        );
+      })
+      .catch(() => {
+        // On error, keep items as 'other' — user can still change manually
+      })
+      .finally(() => {
+        if (!cancelled) setClassifying(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [files]);
 
   const handleTypeChange = useCallback(
@@ -148,6 +124,8 @@ export const BatchUploadDialog = ({
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {t('document.batchUpload.description')}
         </Typography>
+
+        {classifying && <LinearProgress sx={{ mb: 1 }} />}
 
         <Table size="small">
           <TableHead>
@@ -217,7 +195,7 @@ export const BatchUploadDialog = ({
         <Button
           variant="contained"
           onClick={() => onConfirm(items)}
-          disabled={uploading || items.length === 0}
+          disabled={uploading || classifying || items.length === 0}
           startIcon={uploading ? <CircularProgress size={16} /> : undefined}
         >
           {t('common.upload')} ({items.length})
