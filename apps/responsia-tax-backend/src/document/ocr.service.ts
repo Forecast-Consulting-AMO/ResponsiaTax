@@ -30,8 +30,10 @@ export class OcrService {
 
     const { DocumentAnalysisClient, AzureKeyCredential } = runtimeRequire('@azure/ai-form-recognizer');
 
+    // Strip to origin only (users may paste full API URL with path/query params)
+    const cleanEndpoint = new URL(endpoint).origin;
     const client = new DocumentAnalysisClient(
-      endpoint,
+      cleanEndpoint,
       new AzureKeyCredential(key),
     );
 

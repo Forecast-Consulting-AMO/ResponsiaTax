@@ -86,9 +86,9 @@ export class LlmService {
 
     const deploymentName = params.model.replace('azure-openai/', '');
 
-    // Use base OpenAI client with explicit Azure URL to ensure Chat Completions API
-    // (AzureOpenAI class in openai v6 routes to Responses API which rejects 'messages')
-    const baseURL = `${endpoint.replace(/\/$/, '')}/openai/deployments/${deploymentName}`;
+    // Strip endpoint to origin only (users may paste full API URL with path/query params)
+    const cleanEndpoint = new URL(endpoint).origin;
+    const baseURL = `${cleanEndpoint}/openai/deployments/${deploymentName}`;
     const client = new OpenAI({
       apiKey,
       baseURL,
