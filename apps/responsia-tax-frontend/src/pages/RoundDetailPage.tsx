@@ -31,8 +31,14 @@ import {
   AccordionDetails,
   Alert,
   LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import {
+  Delete,
   Description,
   Download,
   ExpandMore,
@@ -78,6 +84,7 @@ export const RoundDetailPage = () => {
   const [uploading, setUploading] = useState(false);
   const [ocrLoading, setOcrLoading] = useState<string | null>(null);
   const [uploadDocType, setUploadDocType] = useState<string>('question_dr');
+  const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
 
   const [editReceivedDate, setEditReceivedDate] = useState('');
   const [editDeadline, setEditDeadline] = useState('');
@@ -270,6 +277,24 @@ export const RoundDetailPage = () => {
       }
     },
     [enqueueSnackbar, t],
+  );
+
+  const handleDeleteDocument = useCallback(
+    async (docId: string) => {
+      try {
+        await documentsApi.remove(docId);
+        enqueueSnackbar(t('dossierDetail.documentDeleted'), {
+          variant: 'success',
+        });
+        setDeleteDocId(null);
+        fetchDocuments();
+      } catch {
+        enqueueSnackbar(t('roundDetail.errors.deleteFailed'), {
+          variant: 'error',
+        });
+      }
+    },
+    [enqueueSnackbar, t, fetchDocuments],
   );
 
   const isDeadlineApproaching = useCallback((deadline: string | null) => {
@@ -697,6 +722,16 @@ export const RoundDetailPage = () => {
                           <Download fontSize="small" />
                         </IconButton>
                       </Tooltip>
+                      <Tooltip title={t('common.delete')}>
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          onClick={() => setDeleteDocId(doc.id)}
+                          color="error"
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </ListItemSecondaryAction>
                   </ListItem>
                 ))}
@@ -705,6 +740,28 @@ export const RoundDetailPage = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Delete document confirmation dialog */}
+      <Dialog open={!!deleteDocId} onClose={() => setDeleteDocId(null)}>
+        <DialogTitle>{t('dossierDetail.documents.deleteTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('dossierDetail.documents.deleteMessage')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDocId(null)}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={() => deleteDocId && handleDeleteDocument(deleteDocId)}
+            color="error"
+            variant="contained"
+          >
+            {t('common.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
