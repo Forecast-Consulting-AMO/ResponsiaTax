@@ -82,15 +82,18 @@ export class LlmService {
       );
     }
 
-    const { AzureOpenAI } = runtimeRequire('openai');
+    const OpenAI = runtimeRequire('openai').default ?? runtimeRequire('openai').OpenAI;
 
     const deploymentName = params.model.replace('azure-openai/', '');
 
-    const client = new AzureOpenAI({
-      endpoint,
+    // Use base OpenAI client with explicit Azure URL to ensure Chat Completions API
+    // (AzureOpenAI class in openai v6 routes to Responses API which rejects 'messages')
+    const baseURL = `${endpoint.replace(/\/$/, '')}/openai/deployments/${deploymentName}`;
+    const client = new OpenAI({
       apiKey,
-      apiVersion: apiVersion!,
-      deployment: deploymentName,
+      baseURL,
+      defaultQuery: { 'api-version': apiVersion },
+      defaultHeaders: { 'api-key': apiKey },
     });
 
     this.logger.log(
