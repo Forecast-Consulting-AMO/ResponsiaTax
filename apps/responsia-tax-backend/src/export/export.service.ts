@@ -70,7 +70,6 @@ export class ExportService {
     });
 
     // Build document sections
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const children: any[] = [];
 
     // Header info
@@ -264,10 +263,8 @@ export class ExportService {
   }
 
   /** Convert a Markdown string into an array of docx Paragraph objects */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private markdownToDocxChildren(markdown: string, docx: any): any[] {
     const { Paragraph, HeadingLevel } = docx;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const children: any[] = [];
     const lines = markdown.split('\n');
 
@@ -296,8 +293,8 @@ export class ExportService {
       }
 
       // Unordered list items: - or *
-      if (/^[\-\*]\s+/.test(line)) {
-        const text = line.replace(/^[\-\*]\s+/, '');
+      if (/^[-*]\s+/.test(line)) {
+        const text = line.replace(/^[-*]\s+/, '');
         children.push(
           new Paragraph({
             children: this.parseInlineFormatting(text, docx),
@@ -334,10 +331,8 @@ export class ExportService {
   }
 
   /** Parse inline Markdown formatting (**bold**, *italic*, `code`, [link](url)) into TextRun objects */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private parseInlineFormatting(text: string, docx: any): any[] {
     const { TextRun, ExternalHyperlink } = docx;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const runs: any[] = [];
     // Match: ***bold+italic***, **bold**, *italic*, `code`, [text](url)
     const pattern =
