@@ -101,6 +101,7 @@ export class DocumentController {
         doc.dossier_id,
         ocrResult.fullText,
         doc.filename,
+        doc.doc_type,
       );
       this.logger.log(
         `Auto-OCR complete for ${doc.filename}: ${ocrResult.fullText.length} chars, ${chunkCount} chunks`,
@@ -172,6 +173,7 @@ export class DocumentController {
         doc.dossier_id,
         doc.ocr_text,
         doc.filename,
+        doc.doc_type,
       );
       return {
         id: doc.id,
@@ -198,6 +200,7 @@ export class DocumentController {
       doc.dossier_id,
       ocrResult.fullText,
       doc.filename,
+      doc.doc_type,
     );
 
     return {

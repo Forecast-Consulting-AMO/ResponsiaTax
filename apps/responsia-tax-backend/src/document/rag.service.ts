@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { DocumentChunk } from './entities/document-chunk.entity';
+import { AzureSearchService } from './azure-search.service';
 
 export interface ChunkResult {
   id: string;
@@ -20,6 +21,7 @@ export class RagService {
     @InjectRepository(DocumentChunk)
     private readonly chunkRepo: Repository<DocumentChunk>,
     private readonly dataSource: DataSource,
+    private readonly azureSearch: AzureSearchService,
   ) {}
 
   /**
@@ -123,9 +125,21 @@ export class RagService {
     dossierId: string,
     ocrText: string,
     filename: string,
+    docType = 'other',
   ): Promise<number> {
     // Remove old chunks for this document
-    await this.chunkRepo.delete({ document_id: documentId });
+    const oldChunks = await this.chunkRepo.find({
+      where: { document_id: documentId },
+      select: ['id'],
+    });
+    if (oldChunks.length > 0) {
+      const oldIds = oldChunks.map((c) => c.id);
+      await this.chunkRepo.delete({ document_id: documentId });
+      // Also remove from Azure AI Search index
+      this.azureSearch.deleteDocumentChunks(oldIds).catch((err) => {
+        this.logger.warn(`Failed to delete old chunks from search index: ${err.message}`);
+      });
+    }
 
     const rawChunks = this.chunkText(ocrText);
     if (rawChunks.length === 0) {
@@ -145,6 +159,22 @@ export class RagService {
 
     await this.chunkRepo.save(entities);
 
+    // Push to Azure AI Search index (fire-and-forget)
+    this.azureSearch
+      .indexChunks(
+        entities.map((e) => ({
+          id: e.id,
+          content: e.content,
+          dossierId,
+          documentId,
+          filename,
+          docType,
+        })),
+      )
+      .catch((err) => {
+        this.logger.warn(`Failed to index chunks in Azure AI Search: ${err.message}`);
+      });
+
     this.logger.log(
       `Chunked document ${filename}: ${entities.length} chunks (${ocrText.length} chars)`,
     );
@@ -154,15 +184,38 @@ export class RagService {
   // ---- Retrieval ----
 
   /**
-   * Two-stage search: full-text (French) primary, trigram fallback.
+   * Semantic search via Azure AI Search (preferred), with PostgreSQL FTS fallback.
    * Returns top-k results scoped to a dossier.
    */
   async search(
     query: string,
     dossierId: string,
-    topK = 5,
+    topK = 10,
   ): Promise<ChunkResult[]> {
-    // Build tsquery: split into words > 2 chars, join with OR
+    // Try Azure AI Search first (semantic ranking)
+    const azureConfigured = await this.azureSearch.isConfigured();
+    if (azureConfigured) {
+      try {
+        const results = await this.azureSearch.search(query, dossierId, topK);
+        if (results.length > 0) {
+          return results;
+        }
+        this.logger.warn('Azure AI Search returned 0 results, falling back to PostgreSQL FTS');
+      } catch (err: any) {
+        this.logger.warn(`Azure AI Search failed, falling back to PostgreSQL FTS: ${err.message}`);
+      }
+    }
+
+    // Fallback: PostgreSQL full-text + trigram
+    return this.searchPostgres(query, dossierId, topK);
+  }
+
+  /** PostgreSQL FTS + trigram fallback search */
+  private async searchPostgres(
+    query: string,
+    dossierId: string,
+    topK: number,
+  ): Promise<ChunkResult[]> {
     const words = query
       .split(/\s+/)
       .filter((w) => w.length > 2)
@@ -187,7 +240,6 @@ export class RagService {
       [tsQuery, dossierId, topK],
     );
 
-    // If we have enough results, return them
     if (fullTextResults.length >= topK) {
       return fullTextResults;
     }

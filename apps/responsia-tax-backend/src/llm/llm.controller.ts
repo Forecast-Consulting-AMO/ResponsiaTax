@@ -408,19 +408,21 @@ Respond with ONLY a JSON array of the document types in the same order as the fi
       const ragResults = await this.ragService.search(
         question.question_text,
         dossierId,
-        5,
+        10,
       );
 
       if (ragResults.length > 0) {
         const excerpts = ragResults.map((r) => {
-          const content = r.content.length > 800
-            ? r.content.substring(0, 800) + '\n[...]'
+          const label = `[Source: ${r.filename} (${r.doc_type})]`;
+          // Keep full chunk content — semantic search already picked the most relevant
+          const content = r.content.length > 2000
+            ? r.content.substring(0, 2000) + '\n[...]'
             : r.content;
-          return `[Source: ${r.filename}]\n${content}`;
+          return `${label}\n${content}`;
         }).join('\n\n---\n\n');
 
         parts.push(
-          `EXTRAITS DE DOCUMENTS DE RÉFÉRENCE (utilisez-les pour enrichir votre réponse):\n\n${excerpts}\n\nIMPORTANT: Inspirez-vous de ces extraits pour structurer et enrichir votre réponse, mais ne les copiez pas verbatim.`,
+          `EXTRAITS DE DOCUMENTS DE RÉFÉRENCE (utilisez-les pour enrichir votre réponse):\n\n${excerpts}\n\nIMPORTANT: Inspirez-vous de ces extraits pour structurer et enrichir votre réponse, mais ne les copiez pas verbatim. Les documents de type "response_draft" contiennent des réponses précédemment rédigées — référencez-les si pertinent.`,
         );
 
         this.logger.log(
