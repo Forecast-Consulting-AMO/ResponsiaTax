@@ -411,6 +411,10 @@
         "title": "Azure Document Intelligence (OCR)",
         "description": "Configuration du service Azure Document Intelligence pour l'extraction de texte des documents."
       },
+      "azureSearch": {
+        "title": "Azure AI Search (RAG sémantique)",
+        "description": "Configuration du service Azure AI Search pour la recherche sémantique dans les documents. Sans cette configuration, la recherche utilise PostgreSQL FTS en fallback."
+      },
       "defaultLlm": {
         "title": "Paramètres LLM par défaut",
         "description": "Modèle et prompt système utilisés par défaut pour les nouvelles conversations."
@@ -424,6 +428,8 @@
       "anthropicApiKey": "Clé API Anthropic",
       "azureDiEndpoint": "Endpoint Azure Document Intelligence",
       "azureDiKey": "Clé Azure Document Intelligence",
+      "azureSearchEndpoint": "Endpoint Azure AI Search",
+      "azureSearchKey": "Clé API Azure AI Search",
       "defaultLlmModel": "Modèle LLM par défaut",
       "defaultSystemPrompt": "Prompt système par défaut",
       "defaultSystemPromptHelp": "Ce prompt système sera utilisé par défaut pour toutes les conversations LLM, sauf si un prompt spécifique est défini au niveau du dossier."

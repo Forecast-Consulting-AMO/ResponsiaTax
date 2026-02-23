@@ -189,6 +189,25 @@ export const SettingsPage = () => {
       ],
     },
     {
+      sectionKey: 'azure_search',
+      title: t('settings.sections.azureSearch.title'),
+      description: t('settings.sections.azureSearch.description'),
+      fields: [
+        {
+          key: 'azure_search_endpoint',
+          label: t('settings.fields.azureSearchEndpoint'),
+          type: 'text',
+          placeholder: 'https://your-search.search.windows.net',
+        },
+        {
+          key: 'azure_search_key',
+          label: t('settings.fields.azureSearchKey'),
+          type: 'password',
+          placeholder: '***',
+        },
+      ],
+    },
+    {
       sectionKey: 'default_llm',
       title: t('settings.sections.defaultLlm.title'),
       description: t('settings.sections.defaultLlm.description'),

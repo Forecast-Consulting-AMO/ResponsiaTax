@@ -402,6 +402,10 @@
         "title": "Azure Document Intelligence (OCR)",
         "description": "Azure Document Intelligence-serviceconfiguratie voor tekstextractie uit documenten."
       },
+      "azureSearch": {
+        "title": "Azure AI Search (Semantische RAG)",
+        "description": "Azure AI Search-serviceconfiguratie voor semantisch zoeken in documenten. Zonder deze configuratie wordt PostgreSQL FTS als fallback gebruikt."
+      },
       "defaultLlm": {
         "title": "Standaard LLM-instellingen",
         "description": "Standaardmodel en systeemprompt voor nieuwe gesprekken."
@@ -415,6 +419,8 @@
       "anthropicApiKey": "Anthropic API-sleutel",
       "azureDiEndpoint": "Azure Document Intelligence Endpoint",
       "azureDiKey": "Azure Document Intelligence-sleutel",
+      "azureSearchEndpoint": "Azure AI Search Endpoint",
+      "azureSearchKey": "Azure AI Search API-sleutel",
       "defaultLlmModel": "Standaard LLM-model",
       "defaultSystemPrompt": "Standaard systeemprompt",
       "defaultSystemPromptHelp": "Deze systeemprompt wordt standaard gebruikt voor alle LLM-gesprekken, tenzij een specifieke prompt op dossierniveau is ingesteld."
