@@ -21,6 +21,7 @@ export interface ChatRequest {
   systemPrompt?: string;
   autoApplyToResponse?: boolean;
   includeDocuments?: boolean;
+  documentIds?: string[];
 }
 
 export interface ChatResponse {

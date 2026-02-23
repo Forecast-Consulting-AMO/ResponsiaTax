@@ -307,7 +307,7 @@ export const SettingsPage = () => {
                       placeholder={field.placeholder}
                       fullWidth
                       multiline
-                      rows={6}
+                      rows={8}
                       helperText={field.helpText}
                     />
                   );

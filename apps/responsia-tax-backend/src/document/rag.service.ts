@@ -186,12 +186,19 @@ export class RagService {
   /**
    * Semantic search via Azure AI Search (preferred), with PostgreSQL FTS fallback.
    * Returns top-k results scoped to a dossier.
+   * If documentIds is provided, only chunks from those documents are returned.
    */
   async search(
     query: string,
     dossierId: string,
     topK = 10,
+    documentIds?: string[],
   ): Promise<ChunkResult[]> {
+    // When specific documentIds are requested, use Postgres directly (supports native filtering)
+    if (documentIds?.length) {
+      return this.searchPostgres(query, dossierId, topK, documentIds);
+    }
+
     // Try Azure AI Search first (semantic ranking)
     const azureConfigured = await this.azureSearch.isConfigured();
     if (azureConfigured) {
@@ -215,6 +222,7 @@ export class RagService {
     query: string,
     dossierId: string,
     topK: number,
+    documentIds?: string[],
   ): Promise<ChunkResult[]> {
     const words = query
       .split(/\s+/)
@@ -225,6 +233,12 @@ export class RagService {
     if (words.length === 0) return [];
 
     const tsQuery = words.join(' | ');
+    const docFilter = documentIds?.length
+      ? `AND c.document_id = ANY($4::uuid[])`
+      : '';
+    const params = documentIds?.length
+      ? [tsQuery, dossierId, topK, documentIds]
+      : [tsQuery, dossierId, topK];
 
     // Stage 1: Full-text search
     const fullTextResults: ChunkResult[] = await this.dataSource.query(
@@ -235,9 +249,10 @@ export class RagService {
        JOIN documents d ON d.id = c.document_id
        WHERE c.dossier_id = $2
          AND to_tsvector('french', c.content) @@ to_tsquery('french', $1)
+         ${docFilter}
        ORDER BY score DESC
        LIMIT $3`,
-      [tsQuery, dossierId, topK],
+      params,
     );
 
     if (fullTextResults.length >= topK) {
@@ -250,7 +265,15 @@ export class RagService {
 
     let trigramResults: ChunkResult[] = [];
     try {
+      const baseIdx = documentIds?.length ? 5 : 4;
       if (excludeIds.length > 0) {
+        const trigramDocFilter = documentIds?.length
+          ? `AND c.document_id = ANY($${baseIdx}::uuid[])`
+          : '';
+        const trigramParams = documentIds?.length
+          ? [query, dossierId, excludeIds, remaining, documentIds]
+          : [query, dossierId, excludeIds, remaining];
+
         trigramResults = await this.dataSource.query(
           `SELECT c.id, c.content, c.section_title,
                   d.filename, d.doc_type,
@@ -260,11 +283,19 @@ export class RagService {
            WHERE c.dossier_id = $2
              AND c.id != ALL($3::uuid[])
              AND similarity(c.content, $1) > 0.05
+             ${trigramDocFilter}
            ORDER BY score DESC
            LIMIT $4`,
-          [query, dossierId, excludeIds, remaining],
+          trigramParams,
         );
       } else {
+        const trigramDocFilter = documentIds?.length
+          ? `AND c.document_id = ANY($4::uuid[])`
+          : '';
+        const trigramParams = documentIds?.length
+          ? [query, dossierId, remaining, documentIds]
+          : [query, dossierId, remaining];
+
         trigramResults = await this.dataSource.query(
           `SELECT c.id, c.content, c.section_title,
                   d.filename, d.doc_type,
@@ -273,9 +304,10 @@ export class RagService {
            JOIN documents d ON d.id = c.document_id
            WHERE c.dossier_id = $2
              AND similarity(c.content, $1) > 0.05
+             ${trigramDocFilter}
            ORDER BY score DESC
            LIMIT $3`,
-          [query, dossierId, remaining],
+          trigramParams,
         );
       }
     } catch (err) {

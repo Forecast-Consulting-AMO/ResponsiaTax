@@ -404,11 +404,18 @@ Respond with ONLY a JSON array of the document types in the same order as the fi
     );
 
     // 4. RAG document excerpts (if enabled, default: true)
-    if (dto.includeDocuments !== false && dossierId) {
+    // documentIds takes precedence: if provided, only search those docs
+    // if documentIds is empty array, skip RAG entirely
+    const shouldDoRag = dto.documentIds
+      ? dto.documentIds.length > 0
+      : dto.includeDocuments !== false;
+
+    if (shouldDoRag && dossierId) {
       const ragResults = await this.ragService.search(
         question.question_text,
         dossierId,
         10,
+        dto.documentIds,
       );
 
       if (ragResults.length > 0) {

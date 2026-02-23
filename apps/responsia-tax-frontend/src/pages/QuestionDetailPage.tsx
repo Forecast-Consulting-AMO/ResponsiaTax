@@ -25,6 +25,14 @@ import {
   Checkbox,
   FormControlLabel,
   Collapse,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import {
   Send,
@@ -37,14 +45,19 @@ import {
   Chat,
   ChevronLeft,
   ChevronRight,
+  Description,
+  FolderOpen,
 } from '@mui/icons-material';
 import { questionsApi } from '../api/questions';
 import { llmApi } from '../api/llm';
+import { roundsApi } from '../api/rounds';
+import { documentsApi } from '../api/documents';
 import type {
   Question,
   QuestionStatus,
   LlmMessage,
   LlmModel,
+  Document,
 } from '../types';
 
 const QUESTION_STATUSES: QuestionStatus[] = [
@@ -78,7 +91,9 @@ export const QuestionDetailPage = () => {
   const [sending, setSending] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [autoApply, setAutoApply] = useState(false);
-  const [includeDocuments, setIncludeDocuments] = useState(true);
+  const [dossierDocuments, setDossierDocuments] = useState<Document[]>([]);
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
+  const [docSelectorOpen, setDocSelectorOpen] = useState(false);
   const [showSystemPrompt, setShowSystemPrompt] = useState(true);
   const [systemPromptOverride, setSystemPromptOverride] = useState('');
   const [systemPromptLoaded, setSystemPromptLoaded] = useState(false);
@@ -153,12 +168,32 @@ export const QuestionDetailPage = () => {
     }
   }, [id, systemPromptLoaded, systemPromptOverride]);
 
+  // Fetch documents for the dossier (for RAG document selector)
+  const fetchDocuments = useCallback(async () => {
+    if (!question?.round_id) return;
+    try {
+      const round = await roundsApi.findOne(question.round_id);
+      if (round.dossier_id) {
+        const docs = await documentsApi.findAll(round.dossier_id);
+        setDossierDocuments(docs);
+        // Select all documents with OCR text by default
+        setSelectedDocIds(new Set(docs.filter((d) => d.ocr_text).map((d) => d.id)));
+      }
+    } catch {
+      // Silently ignore - document selector is optional
+    }
+  }, [question?.round_id]);
+
   useEffect(() => {
     fetchQuestion();
     fetchModels();
     fetchMessages();
     fetchSystemPrompt();
   }, [fetchQuestion, fetchModels, fetchMessages, fetchSystemPrompt]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   // Fetch siblings for navigation
   useEffect(() => {
@@ -272,7 +307,8 @@ export const QuestionDetailPage = () => {
         model: selectedModel,
         systemPrompt: systemPromptOverride || undefined,
         autoApplyToResponse: autoApply,
-        includeDocuments,
+        documentIds: selectedDocIds.size > 0 ? Array.from(selectedDocIds) : undefined,
+        includeDocuments: selectedDocIds.size === 0 ? false : undefined,
       },
       // onDelta - accumulate streaming content
       (delta) => {
@@ -303,7 +339,7 @@ export const QuestionDetailPage = () => {
     selectedModel,
     systemPromptOverride,
     autoApply,
-    includeDocuments,
+    selectedDocIds,
     enqueueSnackbar,
     t,
     fetchMessages,
@@ -544,7 +580,7 @@ export const QuestionDetailPage = () => {
               onChange={(e) => setNotes(e.target.value)}
               fullWidth
               multiline
-              rows={2}
+              rows={3}
               size="small"
               sx={{ mb: 2 }}
             />
@@ -634,8 +670,8 @@ export const QuestionDetailPage = () => {
                 placeholder={t('questionDetail.chat.systemPromptPlaceholder')}
                 fullWidth
                 multiline
-                minRows={2}
-                maxRows={6}
+                minRows={3}
+                maxRows={10}
                 size="small"
                 sx={{
                   mb: 1,
@@ -955,7 +991,7 @@ export const QuestionDetailPage = () => {
                 placeholder={t('questionDetail.chat.inputPlaceholder')}
                 fullWidth
                 multiline
-                maxRows={4}
+                maxRows={6}
                 size="small"
                 disabled={sending}
               />
@@ -995,25 +1031,133 @@ export const QuestionDetailPage = () => {
                 }
                 sx={{ mt: 0.5 }}
               />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={includeDocuments}
-                    onChange={(e) => setIncludeDocuments(e.target.checked)}
-                    size="small"
-                  />
-                }
-                label={
-                  <Typography variant="caption">
-                    {t('questionDetail.chat.includeDocuments')}
-                  </Typography>
-                }
-                sx={{ mt: 0.5 }}
-              />
+              <Button
+                size="small"
+                variant={selectedDocIds.size > 0 ? 'contained' : 'outlined'}
+                color={selectedDocIds.size > 0 ? 'primary' : 'inherit'}
+                startIcon={<FolderOpen sx={{ fontSize: 16 }} />}
+                onClick={() => setDocSelectorOpen(true)}
+                sx={{
+                  mt: 0.5,
+                  textTransform: 'none',
+                  fontSize: '0.75rem',
+                  py: 0.25,
+                  px: 1.5,
+                }}
+              >
+                {selectedDocIds.size > 0
+                  ? t('questionDetail.chat.documentsSelected', { count: selectedDocIds.size })
+                  : t('questionDetail.chat.selectDocuments')}
+              </Button>
             </Box>
           </Box>
         </Paper>
       </Box>
+      {/* Document selector dialog */}
+      <Dialog
+        open={docSelectorOpen}
+        onClose={() => setDocSelectorOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{t('questionDetail.chat.selectDocumentsTitle')}</DialogTitle>
+        <DialogContent dividers>
+          {dossierDocuments.length === 0 ? (
+            <Box sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+              <Typography variant="body2">
+                {t('questionDetail.chat.noDocuments')}
+              </Typography>
+            </Box>
+          ) : (
+            <List dense disablePadding>
+              {/* Select / Unselect all */}
+              <ListItem sx={{ px: 0 }}>
+                <Checkbox
+                  size="small"
+                  checked={selectedDocIds.size === dossierDocuments.filter((d) => d.ocr_text).length && dossierDocuments.filter((d) => d.ocr_text).length > 0}
+                  indeterminate={selectedDocIds.size > 0 && selectedDocIds.size < dossierDocuments.filter((d) => d.ocr_text).length}
+                  onChange={() => {
+                    const ocrDocs = dossierDocuments.filter((d) => d.ocr_text);
+                    setSelectedDocIds((prev) =>
+                      prev.size === ocrDocs.length
+                        ? new Set()
+                        : new Set(ocrDocs.map((d) => d.id)),
+                    );
+                  }}
+                  sx={{ mr: 0.5 }}
+                />
+                <ListItemText
+                  primary={
+                    <Typography variant="body2" fontWeight={500}>
+                      {t('questionDetail.chat.selectUnselectAll')}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+              <Divider />
+              {dossierDocuments.map((doc) => {
+                const hasOcr = !!doc.ocr_text;
+                return (
+                  <ListItem
+                    key={doc.id}
+                    sx={{ px: 0, opacity: hasOcr ? 1 : 0.5 }}
+                  >
+                    <Checkbox
+                      size="small"
+                      checked={selectedDocIds.has(doc.id)}
+                      disabled={!hasOcr}
+                      onChange={() => {
+                        setSelectedDocIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(doc.id)) next.delete(doc.id);
+                          else next.add(doc.id);
+                          return next;
+                        });
+                      }}
+                      sx={{ mr: 0.5 }}
+                    />
+                    <ListItemIcon sx={{ minWidth: 32 }}>
+                      <Description fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2" noWrap>
+                          {doc.filename}
+                        </Typography>
+                      }
+                      secondary={
+                        <Box component="span" sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          <Chip
+                            label={doc.doc_type}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: '0.65rem', height: 18 }}
+                          />
+                          {hasOcr ? (
+                            <Chip label="OCR" size="small" color="success" sx={{ fontSize: '0.6rem', height: 16 }} />
+                          ) : (
+                            <Typography variant="caption" color="text.disabled">
+                              {t('questionDetail.chat.noOcr')}
+                            </Typography>
+                          )}
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                );
+              })}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Typography variant="caption" color="text.secondary" sx={{ flex: 1, pl: 2 }}>
+            {t('questionDetail.chat.documentsSelected', { count: selectedDocIds.size })}
+          </Typography>
+          <Button onClick={() => setDocSelectorOpen(false)} variant="contained" size="small">
+            {t('common.close')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

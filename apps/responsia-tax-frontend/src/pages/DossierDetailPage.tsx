@@ -535,7 +535,7 @@ export const DossierDetailPage = () => {
                   onChange={(e) => handleEditChange('notes', e.target.value)}
                   fullWidth
                   multiline
-                  rows={3}
+                  rows={4}
                 />
                 <TextField
                   label={t('dossiers.fields.systemPrompt')}
@@ -545,7 +545,7 @@ export const DossierDetailPage = () => {
                   }
                   fullWidth
                   multiline
-                  rows={4}
+                  rows={6}
                   helperText={t('dossiers.fields.systemPromptHelp')}
                 />
               </Box>

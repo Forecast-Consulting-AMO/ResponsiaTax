@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsArray, IsUUID } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ChatRequestDto {
@@ -24,10 +24,19 @@ export class ChatRequestDto {
   autoApplyToResponse?: boolean;
 
   @ApiPropertyOptional({
-    description: 'If true (default), search dossier documents via RAG and include relevant excerpts in context',
+    description: 'If true (default), search dossier documents via RAG and include relevant excerpts in context. Ignored if documentIds is provided.',
     default: true,
   })
   @IsOptional()
   @IsBoolean()
   includeDocuments?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Specific document IDs to use for RAG. If provided, only these documents are searched. Overrides includeDocuments.',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  documentIds?: string[];
 }
