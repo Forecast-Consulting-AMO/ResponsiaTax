@@ -184,17 +184,9 @@ export class ExportService {
         }),
       );
 
-      // Response text - split by paragraphs
+      // Response text - parse markdown formatting
       const responseText = q.response_text || '(Reponse en attente)';
-      const paragraphs = responseText.split('\n');
-      for (const para of paragraphs) {
-        children.push(
-          new Paragraph({
-            children: [new TextRun({ text: para, size: 22 })],
-            spacing: { after: 80 },
-          }),
-        );
-      }
+      children.push(...this.markdownToDocxChildren(responseText, docx));
 
       // Separator between questions
       children.push(
@@ -213,6 +205,21 @@ export class ExportService {
 
     // Build the document
     const doc = new Document({
+      numbering: {
+        config: [
+          {
+            reference: 'md-numbering',
+            levels: [
+              {
+                level: 0,
+                format: docx.LevelFormat.DECIMAL,
+                text: '%1.',
+                alignment: docx.AlignmentType.START,
+              },
+            ],
+          },
+        ],
+      },
       sections: [
         {
           headers: {
@@ -254,5 +261,156 @@ export class ExportService {
 
     const buffer = await Packer.toBuffer(doc);
     return Buffer.from(buffer);
+  }
+
+  /** Convert a Markdown string into an array of docx Paragraph objects */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private markdownToDocxChildren(markdown: string, docx: any): any[] {
+    const { Paragraph, HeadingLevel } = docx;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const children: any[] = [];
+    const lines = markdown.split('\n');
+
+    for (const line of lines) {
+      // Skip empty lines (paragraph spacing handles it)
+      if (line.trim() === '') continue;
+
+      // Headings: # ## ###
+      const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        const headingLevel =
+          level === 1
+            ? HeadingLevel.HEADING_2
+            : level === 2
+              ? HeadingLevel.HEADING_3
+              : HeadingLevel.HEADING_4;
+        children.push(
+          new Paragraph({
+            children: this.parseInlineFormatting(headingMatch[2], docx),
+            heading: headingLevel,
+            spacing: { before: 200, after: 100 },
+          }),
+        );
+        continue;
+      }
+
+      // Unordered list items: - or *
+      if (/^[\-\*]\s+/.test(line)) {
+        const text = line.replace(/^[\-\*]\s+/, '');
+        children.push(
+          new Paragraph({
+            children: this.parseInlineFormatting(text, docx),
+            bullet: { level: 0 },
+            spacing: { after: 40 },
+          }),
+        );
+        continue;
+      }
+
+      // Ordered list items: 1. 2. etc.
+      const olMatch = line.match(/^\d+\.\s+(.+)$/);
+      if (olMatch) {
+        children.push(
+          new Paragraph({
+            children: this.parseInlineFormatting(olMatch[1], docx),
+            numbering: { reference: 'md-numbering', level: 0 },
+            spacing: { after: 40 },
+          }),
+        );
+        continue;
+      }
+
+      // Regular paragraph
+      children.push(
+        new Paragraph({
+          children: this.parseInlineFormatting(line, docx),
+          spacing: { after: 80 },
+        }),
+      );
+    }
+
+    return children;
+  }
+
+  /** Parse inline Markdown formatting (**bold**, *italic*, `code`, [link](url)) into TextRun objects */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private parseInlineFormatting(text: string, docx: any): any[] {
+    const { TextRun, ExternalHyperlink } = docx;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const runs: any[] = [];
+    // Match: ***bold+italic***, **bold**, *italic*, `code`, [text](url)
+    const pattern =
+      /(\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|\[(.+?)\]\((.+?)\))/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = pattern.exec(text)) !== null) {
+      // Plain text before this match
+      if (match.index > lastIndex) {
+        runs.push(
+          new TextRun({
+            text: text.slice(lastIndex, match.index),
+            size: 22,
+          }),
+        );
+      }
+
+      if (match[2]) {
+        // ***bold+italic***
+        runs.push(
+          new TextRun({
+            text: match[2],
+            bold: true,
+            italics: true,
+            size: 22,
+          }),
+        );
+      } else if (match[3]) {
+        // **bold**
+        runs.push(
+          new TextRun({ text: match[3], bold: true, size: 22 }),
+        );
+      } else if (match[4]) {
+        // *italic*
+        runs.push(
+          new TextRun({ text: match[4], italics: true, size: 22 }),
+        );
+      } else if (match[5]) {
+        // `code`
+        runs.push(
+          new TextRun({ text: match[5], font: 'Courier New', size: 20 }),
+        );
+      } else if (match[6] && match[7]) {
+        // [link](url)
+        runs.push(
+          new ExternalHyperlink({
+            children: [
+              new TextRun({
+                text: match[6],
+                style: 'Hyperlink',
+                size: 22,
+              }),
+            ],
+            link: match[7],
+          }),
+        );
+      }
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Trailing plain text
+    if (lastIndex < text.length) {
+      runs.push(
+        new TextRun({ text: text.slice(lastIndex), size: 22 }),
+      );
+    }
+
+    if (runs.length === 0) {
+      runs.push(new TextRun({ text, size: 22 }));
+    }
+
+    return runs;
   }
 }

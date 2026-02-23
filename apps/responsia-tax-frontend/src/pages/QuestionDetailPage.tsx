@@ -48,6 +48,7 @@ import {
   Description,
   FolderOpen,
 } from '@mui/icons-material';
+import { RichTextEditor } from '../components/RichTextEditor';
 import { questionsApi } from '../api/questions';
 import { llmApi } from '../api/llm';
 import { roundsApi } from '../api/rounds';
@@ -391,12 +392,12 @@ export const QuestionDetailPage = () => {
   // Copy assistant message to response
   const handleCopyToResponse = useCallback(
     (content: string) => {
-      setResponseText(content);
+      handleResponseChange(content);
       enqueueSnackbar(t('questionDetail.copiedToResponse'), {
         variant: 'info',
       });
     },
-    [enqueueSnackbar, t],
+    [handleResponseChange, enqueueSnackbar, t],
   );
 
   // Handle Enter key in chat input
@@ -590,24 +591,13 @@ export const QuestionDetailPage = () => {
           <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
             {t('questionDetail.response.title')}
           </Typography>
-          <TextField
-            value={responseText}
-            onChange={(e) => handleResponseChange(e.target.value)}
-            placeholder={t('questionDetail.response.placeholder')}
-            fullWidth
-            multiline
-            sx={{
-              flex: 1,
-              '& .MuiInputBase-root': {
-                height: '100%',
-                alignItems: 'flex-start',
-              },
-              '& .MuiInputBase-input': {
-                height: '100% !important',
-                overflow: 'auto !important',
-              },
-            }}
-          />
+          <Box sx={{ flex: 1, minHeight: 0 }}>
+            <RichTextEditor
+              content={responseText}
+              onChange={handleResponseChange}
+              placeholder={t('questionDetail.response.placeholder')}
+            />
+          </Box>
         </Paper>
 
         {/* Right panel - LLM Chat */}
