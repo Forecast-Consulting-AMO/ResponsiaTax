@@ -231,6 +231,26 @@ export class DocumentController {
     };
   }
 
+  @Get('dossiers/:dossierId/search')
+  @ApiOperation({ summary: 'Search document chunks (RAG full-text + trigram)' })
+  @ApiQuery({ name: 'q', required: true, description: 'Search query' })
+  @ApiQuery({ name: 'top_k', required: false, description: 'Max results (default 10)' })
+  @ApiQuery({ name: 'document_ids', required: false, description: 'Comma-separated document UUIDs to restrict search' })
+  @ApiResponse({ status: 200, description: 'Matching chunks' })
+  async searchChunks(
+    @Param('dossierId', ParseUUIDPipe) dossierId: string,
+    @Query('q') query: string,
+    @Query('top_k') topK?: string,
+    @Query('document_ids') documentIds?: string,
+  ) {
+    if (!query?.trim()) {
+      throw new BadRequestException('Query parameter "q" is required');
+    }
+    const k = topK ? Math.min(parseInt(topK, 10) || 10, 50) : 10;
+    const docIds = documentIds ? documentIds.split(',').filter(Boolean) : undefined;
+    return this.ragService.search(query, dossierId, k, docIds);
+  }
+
   @Get('dossiers/:dossierId/chunks/count')
   @ApiOperation({ summary: 'Get RAG chunk count for a dossier' })
   @ApiResponse({ status: 200, description: 'Chunk count' })

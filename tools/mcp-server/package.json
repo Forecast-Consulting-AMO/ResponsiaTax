@@ -1,0 +1,22 @@
+{
+  "name": "@fc/responsia-tax-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for ResponsiaTax — exposes tax audit dossier management, document OCR/RAG, and LLM chat to Claude Desktop/Code",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "responsia-tax-mcp": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.7.0"
+  }
+}
