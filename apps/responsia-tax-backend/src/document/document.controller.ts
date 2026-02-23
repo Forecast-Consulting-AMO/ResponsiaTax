@@ -29,7 +29,7 @@ import * as express from 'express';
 import { DocumentService } from './document.service';
 import { OcrService } from './ocr.service';
 import { RagService } from './rag.service';
-import { DocType } from './entities/document.entity';
+import { DocType, Document } from './entities/document.entity';
 
 @ApiTags('documents')
 @Controller({ version: '1' })
@@ -69,13 +69,45 @@ export class DocumentController {
     },
   })
   @ApiResponse({ status: 201, description: 'Document uploaded' })
-  upload(
+  async upload(
     @Param('dossierId', ParseUUIDPipe) dossierId: string,
     @UploadedFile() file: Express.Multer.File,
     @Body('doc_type') docType: DocType,
     @Body('round_id') roundId?: string,
   ) {
-    return this.documentService.upload(dossierId, file, docType, roundId);
+    const doc = await this.documentService.upload(dossierId, file, docType, roundId);
+
+    // Fire-and-forget: OCR + chunk for RAG in background (don't block response)
+    this.processDocumentForRag(doc).catch((err) => {
+      this.logger.warn(`Background OCR/chunking failed for ${doc.id}: ${err.message}`);
+    });
+
+    return doc;
+  }
+
+  /**
+   * Background OCR + chunking so documents are immediately searchable via RAG.
+   */
+  private async processDocumentForRag(doc: Document): Promise<void> {
+    try {
+      const ocrResult = await this.ocrService.extractText(doc.file_path);
+      await this.documentService.updateOcr(
+        doc.id,
+        ocrResult.fullText,
+        ocrResult.pages as Record<string, unknown>[],
+      );
+      const chunkCount = await this.ragService.chunkDocument(
+        doc.id,
+        doc.dossier_id,
+        ocrResult.fullText,
+        doc.filename,
+      );
+      this.logger.log(
+        `Auto-OCR complete for ${doc.filename}: ${ocrResult.fullText.length} chars, ${chunkCount} chunks`,
+      );
+    } catch (err: any) {
+      this.logger.warn(`Auto-OCR failed for ${doc.filename}: ${err.message}`);
+    }
   }
 
   @Get('dossiers/:dossierId/documents')

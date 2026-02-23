@@ -11,6 +11,7 @@ const runtimeRequire: NodeRequire = typeof __non_webpack_require__ !== 'undefine
 
 export const AVAILABLE_MODELS = [
   // OpenAI (direct API)
+  { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat', provider: 'openai' },
   { id: 'openai/gpt-4.1', name: 'GPT-4.1', provider: 'openai' },
   { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'openai' },
   { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano', provider: 'openai' },
@@ -18,6 +19,8 @@ export const AVAILABLE_MODELS = [
   { id: 'openai/o3', name: 'o3 (reasoning)', provider: 'openai' },
   { id: 'openai/o3-mini', name: 'o3-mini', provider: 'openai' },
   // Anthropic (direct API)
+  { id: 'anthropic/claude-opus-4-6', name: 'Claude Opus 4.6', provider: 'anthropic' },
+  { id: 'anthropic/claude-sonnet-4-6', name: 'Claude Sonnet 4.6', provider: 'anthropic' },
   { id: 'anthropic/claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', provider: 'anthropic' },
   { id: 'anthropic/claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', provider: 'anthropic' },
   // Azure OpenAI

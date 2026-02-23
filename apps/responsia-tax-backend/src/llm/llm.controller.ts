@@ -62,7 +62,7 @@ export class LlmController {
     if (!model) {
       const hasAnthropic = await this.settingService.get('anthropic_api_key');
       if (hasAnthropic) {
-        model = 'anthropic/claude-sonnet-4-5-20250929';
+        model = 'anthropic/claude-sonnet-4-6';
       } else {
         const hasOpenai = await this.settingService.get('openai_api_key');
         model = hasOpenai ? 'openai/gpt-4.1-mini' : 'azure-openai/gpt-4.1-mini';
