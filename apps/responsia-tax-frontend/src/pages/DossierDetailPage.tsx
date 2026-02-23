@@ -49,7 +49,6 @@ import type {
   UpdateDossierDto,
   Round,
   Document,
-  DocType,
 } from '../types';
 
 const TAX_TYPES = [
