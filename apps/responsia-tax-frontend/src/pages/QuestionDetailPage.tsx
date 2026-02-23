@@ -135,13 +135,13 @@ export const QuestionDetailPage = () => {
     try {
       const data = await llmApi.getModels();
       setModels(data);
-      if (data.length > 0 && !selectedModel) {
-        setSelectedModel(data[0].id);
+      if (data.length > 0) {
+        setSelectedModel((prev) => prev || data[0].id);
       }
     } catch {
       // Models fetch can fail silently -- settings might not be configured yet
     }
-  }, [selectedModel]);
+  }, []);
 
   // Fetch chat messages
   const fetchMessages = useCallback(async () => {
