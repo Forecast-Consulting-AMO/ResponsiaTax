@@ -33,6 +33,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Checkbox,
+  alpha,
 } from '@mui/material';
 import {
   Delete,
@@ -87,6 +89,9 @@ export const RoundDetailPage = () => {
   const [uploading, setUploading] = useState(false);
   const [ocrLoading, setOcrLoading] = useState<string | null>(null);
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
+  const [massDeleteOpen, setMassDeleteOpen] = useState(false);
+  const [massDeleting, setMassDeleting] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [draftingAll, setDraftingAll] = useState(false);
   const [draftProgress, setDraftProgress] = useState({ current: 0, total: 0 });
@@ -369,6 +374,42 @@ export const RoundDetailPage = () => {
     },
     [enqueueSnackbar, t, fetchDocuments],
   );
+
+  const handleToggleSelect = useCallback((docId: string) => {
+    setSelectedDocIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(docId)) next.delete(docId);
+      else next.add(docId);
+      return next;
+    });
+  }, []);
+
+  const handleToggleSelectAll = useCallback(() => {
+    setSelectedDocIds((prev) =>
+      prev.size === documents.length
+        ? new Set()
+        : new Set(documents.map((d) => d.id)),
+    );
+  }, [documents]);
+
+  const handleMassDelete = useCallback(async () => {
+    if (selectedDocIds.size === 0) return;
+    try {
+      setMassDeleting(true);
+      const result = await documentsApi.removeBatch(Array.from(selectedDocIds));
+      enqueueSnackbar(
+        t('roundDetail.documents.massDeleted', { count: result.deleted }),
+        { variant: 'success' },
+      );
+      setSelectedDocIds(new Set());
+      setMassDeleteOpen(false);
+      fetchDocuments();
+    } catch {
+      enqueueSnackbar(t('roundDetail.errors.deleteFailed'), { variant: 'error' });
+    } finally {
+      setMassDeleting(false);
+    }
+  }, [selectedDocIds, enqueueSnackbar, t, fetchDocuments]);
 
   const isDeadlineApproaching = useCallback((deadline: string | null) => {
     if (!deadline) return false;
@@ -784,7 +825,7 @@ export const RoundDetailPage = () => {
         <Grid size={{ xs: 12, md: 5 }}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
-              {t('roundDetail.documents.title')}
+              {t('roundDetail.documents.title')} ({documents.length})
             </Typography>
 
             <Box sx={{ mb: 2 }}>
@@ -797,6 +838,35 @@ export const RoundDetailPage = () => {
             </Box>
 
             <Divider sx={{ mb: 2 }} />
+
+            {/* Selection toolbar */}
+            {selectedDocIds.size > 0 && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1.5,
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: 1,
+                  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                }}
+              >
+                <Typography variant="body2" fontWeight={500}>
+                  {t('roundDetail.documents.selected', { count: selectedDocIds.size })}
+                </Typography>
+                <Button
+                  size="small"
+                  color="error"
+                  variant="contained"
+                  startIcon={<Delete fontSize="small" />}
+                  onClick={() => setMassDeleteOpen(true)}
+                >
+                  {t('roundDetail.documents.deleteSelected')}
+                </Button>
+              </Box>
+            )}
 
             {documents.length === 0 ? (
               <Box
@@ -812,8 +882,32 @@ export const RoundDetailPage = () => {
               </Box>
             ) : (
               <List dense disablePadding>
+                {/* Select all */}
+                <ListItem sx={{ px: 0 }}>
+                  <Checkbox
+                    size="small"
+                    checked={selectedDocIds.size === documents.length}
+                    indeterminate={selectedDocIds.size > 0 && selectedDocIds.size < documents.length}
+                    onChange={handleToggleSelectAll}
+                    sx={{ mr: 0.5 }}
+                  />
+                  <ListItemText
+                    primary={
+                      <Typography variant="caption" color="text.secondary">
+                        {t('roundDetail.documents.selectAll')}
+                      </Typography>
+                    }
+                  />
+                </ListItem>
+                <Divider />
                 {documents.map((doc) => (
                   <ListItem key={doc.id} sx={{ px: 0, flexWrap: 'wrap' }}>
+                    <Checkbox
+                      size="small"
+                      checked={selectedDocIds.has(doc.id)}
+                      onChange={() => handleToggleSelect(doc.id)}
+                      sx={{ mr: 0.5 }}
+                    />
                     <ListItemIcon sx={{ minWidth: 36 }}>
                       <Description fontSize="small" />
                     </ListItemIcon>
@@ -912,6 +1006,30 @@ export const RoundDetailPage = () => {
             onClick={() => deleteDocId && handleDeleteDocument(deleteDocId)}
             color="error"
             variant="contained"
+          >
+            {t('common.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Mass delete confirmation dialog */}
+      <Dialog open={massDeleteOpen} onClose={() => setMassDeleteOpen(false)}>
+        <DialogTitle>{t('roundDetail.documents.massDeleteTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('roundDetail.documents.massDeleteMessage', { count: selectedDocIds.size })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setMassDeleteOpen(false)} disabled={massDeleting}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={handleMassDelete}
+            color="error"
+            variant="contained"
+            disabled={massDeleting}
+            startIcon={massDeleting ? <CircularProgress size={16} /> : undefined}
           >
             {t('common.delete')}
           </Button>

@@ -159,6 +159,26 @@ export class DocumentController {
     return this.documentService.remove(id);
   }
 
+  @Post('documents/batch-delete')
+  @ApiOperation({ summary: 'Delete multiple documents at once' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['ids'],
+      properties: {
+        ids: { type: 'array', items: { type: 'string', format: 'uuid' } },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Documents deleted' })
+  async removeBatch(@Body('ids') ids: string[]) {
+    if (!ids || ids.length === 0) {
+      return { deleted: 0 };
+    }
+    const deleted = await this.documentService.removeBatch(ids);
+    return { deleted };
+  }
+
   @Post('documents/:id/ocr')
   @ApiOperation({ summary: 'Run OCR on a document and auto-chunk for RAG' })
   @ApiResponse({ status: 200, description: 'OCR + chunking complete' })

@@ -216,7 +216,13 @@
       "title": "Documenten",
       "upload": "Documenten uploaden",
       "empty": "Geen documenten voor deze ronde.",
-      "ocr": "OCR starten"
+      "ocr": "OCR starten",
+      "selectAll": "Alles selecteren",
+      "selected": "{{count}} document(en) geselecteerd",
+      "deleteSelected": "Selectie verwijderen",
+      "massDeleteTitle": "Geselecteerde documenten verwijderen",
+      "massDeleteMessage": "Weet u zeker dat u {{count}} document(en) wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+      "massDeleted": "{{count}} document(en) verwijderd"
     },
     "export": {
       "title": "Export",

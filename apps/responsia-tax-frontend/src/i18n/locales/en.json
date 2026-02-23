@@ -226,7 +226,13 @@
       "title": "Documents",
       "upload": "Upload documents",
       "empty": "No documents for this round.",
-      "ocr": "Run OCR"
+      "ocr": "Run OCR",
+      "selectAll": "Select all",
+      "selected": "{{count}} document(s) selected",
+      "deleteSelected": "Delete selected",
+      "massDeleteTitle": "Delete selected documents",
+      "massDeleteMessage": "Are you sure you want to delete {{count}} document(s)? This action cannot be undone.",
+      "massDeleted": "{{count}} document(s) deleted"
     },
     "export": {
       "title": "Export",

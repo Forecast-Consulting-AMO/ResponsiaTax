@@ -85,6 +85,24 @@ export class DocumentService {
     await this.docRepo.remove(doc);
   }
 
+  async removeBatch(ids: string[]): Promise<number> {
+    let deleted = 0;
+    for (const id of ids) {
+      try {
+        const doc = await this.docRepo.findOne({ where: { id } });
+        if (!doc) continue;
+        if (fs.existsSync(doc.file_path)) {
+          fs.unlinkSync(doc.file_path);
+        }
+        await this.docRepo.remove(doc);
+        deleted++;
+      } catch {
+        // Skip individual failures, continue deleting others
+      }
+    }
+    return deleted;
+  }
+
   async updateOcr(id: string, ocrText: string, ocrPagesJson?: Record<string, unknown>[]): Promise<Document> {
     const doc = await this.findOne(id);
     doc.ocr_text = ocrText;

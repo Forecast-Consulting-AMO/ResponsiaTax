@@ -226,7 +226,13 @@
       "title": "Documents",
       "upload": "Téléverser des documents",
       "empty": "Aucun document pour ce tour.",
-      "ocr": "Lancer l'OCR"
+      "ocr": "Lancer l'OCR",
+      "selectAll": "Tout sélectionner",
+      "selected": "{{count}} document(s) sélectionné(s)",
+      "deleteSelected": "Supprimer la sélection",
+      "massDeleteTitle": "Supprimer les documents sélectionnés",
+      "massDeleteMessage": "Êtes-vous sûr de vouloir supprimer {{count}} document(s) ? Cette action est irréversible.",
+      "massDeleted": "{{count}} document(s) supprimé(s)"
     },
     "export": {
       "title": "Export",

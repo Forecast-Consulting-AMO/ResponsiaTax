@@ -67,6 +67,9 @@ export const documentsApi = {
 
   remove: (id: string) => AXIOS_INSTANCE.delete(`/api/v1/documents/${id}`),
 
+  removeBatch: (ids: string[]) =>
+    AXIOS_INSTANCE.post<{ deleted: number }>('/api/v1/documents/batch-delete', { ids }).then((r) => r.data),
+
   download: (id: string) =>
     AXIOS_INSTANCE.get<Blob>(`/api/v1/documents/${id}/download`, {
       responseType: 'blob',
