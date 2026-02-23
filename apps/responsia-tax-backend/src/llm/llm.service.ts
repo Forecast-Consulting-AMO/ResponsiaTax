@@ -11,7 +11,8 @@ const runtimeRequire: NodeRequire = typeof __non_webpack_require__ !== 'undefine
 
 export const AVAILABLE_MODELS = [
   // OpenAI (direct API)
-  { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat', provider: 'openai' },
+  { id: 'openai/gpt-5.2', name: 'GPT-5.2 (Thinking)', provider: 'openai' },
+  { id: 'openai/gpt-5.2-chat-latest', name: 'GPT-5.2 Instant', provider: 'openai' },
   { id: 'openai/gpt-4.1', name: 'GPT-4.1', provider: 'openai' },
   { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'openai' },
   { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano', provider: 'openai' },
@@ -24,7 +25,8 @@ export const AVAILABLE_MODELS = [
   { id: 'anthropic/claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', provider: 'anthropic' },
   { id: 'anthropic/claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', provider: 'anthropic' },
   // Azure OpenAI
-  { id: 'azure-openai/gpt-5.2-chat', name: 'Azure GPT-5.2 Chat', provider: 'azure-openai' },
+  { id: 'azure-openai/gpt-5.2', name: 'Azure GPT-5.2 (Thinking)', provider: 'azure-openai' },
+  { id: 'azure-openai/gpt-5.2-chat-latest', name: 'Azure GPT-5.2 Instant', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4o', name: 'Azure GPT-4o', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4.1', name: 'Azure GPT-4.1', provider: 'azure-openai' },
   { id: 'azure-openai/gpt-4.1-mini', name: 'Azure GPT-4.1 Mini', provider: 'azure-openai' },
@@ -44,6 +46,9 @@ export interface ChatResponse {
   tokensIn: number;
   tokensOut: number;
 }
+
+/** Reasoning models don't support temperature/top_p */
+const REASONING_MODELS = ['gpt-5.2', 'o3', 'o3-mini', 'o1', 'o1-mini'];
 
 @Injectable()
 export class LlmService {
@@ -98,13 +103,14 @@ export class LlmService {
       `Calling OpenAI model=${modelName}, messages=${params.messages.length}`,
     );
 
+    const isReasoning = REASONING_MODELS.some((r) => modelName.startsWith(r));
     const response = await client.chat.completions.create({
       model: modelName,
       messages: params.messages.map((m: any) => ({
         role: m.role,
         content: m.content,
       })),
-      temperature: params.temperature ?? 0.3,
+      ...(isReasoning ? {} : { temperature: params.temperature ?? 0.3 }),
       max_completion_tokens: params.maxTokens ?? 4096,
     });
 
@@ -155,13 +161,14 @@ export class LlmService {
       `Calling Azure OpenAI model=${deploymentName}, messages=${params.messages.length}`,
     );
 
+    const isReasoning = REASONING_MODELS.some((r) => deploymentName.startsWith(r));
     const response = await client.chat.completions.create({
       model: deploymentName,
       messages: params.messages.map((m) => ({
         role: m.role,
         content: m.content,
       })),
-      temperature: params.temperature ?? 0.3,
+      ...(isReasoning ? {} : { temperature: params.temperature ?? 0.3 }),
       max_completion_tokens: params.maxTokens ?? 4096,
     });
 
@@ -278,13 +285,14 @@ export class LlmService {
       `Streaming OpenAI model=${modelName}, messages=${params.messages.length}`,
     );
 
+    const isReasoning = REASONING_MODELS.some((r) => modelName.startsWith(r));
     const stream = await client.chat.completions.create({
       model: modelName,
       messages: params.messages.map((m: any) => ({
         role: m.role,
         content: m.content,
       })),
-      temperature: params.temperature ?? 0.3,
+      ...(isReasoning ? {} : { temperature: params.temperature ?? 0.3 }),
       max_completion_tokens: params.maxTokens ?? 4096,
       stream: true,
       stream_options: { include_usage: true },
@@ -347,13 +355,14 @@ export class LlmService {
       `Streaming Azure OpenAI model=${deploymentName}, messages=${params.messages.length}`,
     );
 
+    const isReasoning = REASONING_MODELS.some((r) => deploymentName.startsWith(r));
     const stream = await client.chat.completions.create({
       model: deploymentName,
       messages: params.messages.map((m: any) => ({
         role: m.role,
         content: m.content,
       })),
-      temperature: params.temperature ?? 0.3,
+      ...(isReasoning ? {} : { temperature: params.temperature ?? 0.3 }),
       max_completion_tokens: params.maxTokens ?? 4096,
       stream: true,
       stream_options: { include_usage: true },
